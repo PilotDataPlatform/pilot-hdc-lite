@@ -1,0 +1,10 @@
+global:
+  postgresql:
+    auth:
+      username: "bn_keycloak"
+      database: "bitnami_keycloak"
+
+image:
+  registry: docker.io
+  repository: bitnami/postgresql
+  tag: 15.2.0-debian-11-r5

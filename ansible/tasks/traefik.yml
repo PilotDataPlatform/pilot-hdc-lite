@@ -1,0 +1,13 @@
+---
+- name: Wait for built-in Traefik to be ready
+  kubernetes.core.k8s_info:
+    api_version: apps/v1
+    kind: Deployment
+    name: traefik
+    namespace: kube-system
+    wait: true
+    wait_condition:
+      type: Available
+      status: "True"
+    wait_timeout: 300
+  become: false

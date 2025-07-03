@@ -1,0 +1,52 @@
+---
+- name: Install kubectl
+  get_url:
+    url: "https://dl.k8s.io/release/v{{ kubectl_version }}/bin/linux/amd64/kubectl"
+    dest: /usr/local/bin/kubectl
+    mode: '0755'
+  become: yes
+
+- name: Install Helm
+  unarchive:
+    src: "https://get.helm.sh/helm-v{{ helm_version }}-linux-amd64.tar.gz"
+    dest: /tmp
+    remote_src: yes
+    creates: /tmp/linux-amd64/helm
+  become: yes
+
+- name: Copy Helm binary
+  copy:
+    src: /tmp/linux-amd64/helm
+    dest: /usr/local/bin/helm
+    mode: '0755'
+    remote_src: yes
+  become: yes
+
+  # we are installing k9s to better help manage the kubernetes cluster in the VM
+- name: Download k9s .deb package
+  get_url:
+    url: "https://github.com/derailed/k9s/releases/latest/download/k9s_linux_amd64.deb"
+    dest: /tmp/k9s_linux_amd64.deb
+    mode: '0644'
+  become: yes
+
+- name: Install k9s
+  apt:
+    deb: /tmp/k9s_linux_amd64.deb
+    state: present
+  become: yes
+
+- name: Remove k9s .deb package
+  file:
+    path: /tmp/k9s_linux_amd64.deb
+    state: absent
+  become: yes
+
+- name: Create MinIO data directory
+  file:
+    path: /var/minio
+    state: directory
+    mode: '0755'
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+  become: yes

@@ -1,0 +1,54 @@
+---
+- name: Check if Terraform is already installed
+  command: terraform --version
+  register: terraform_check
+  failed_when: false
+  changed_when: false
+
+- name: Install Terraform
+  block:
+    - name: Download Terraform
+      get_url:
+        url: "https://releases.hashicorp.com/terraform/{{ terraform_version }}/terraform_{{ terraform_version }}_linux_amd64.zip"
+        dest: "/tmp/terraform_{{ terraform_version }}_linux_amd64.zip"
+        mode: '0644'
+
+    - name: Install unzip if not present
+      package:
+        name: unzip
+        state: present
+      become: yes
+
+    - name: Extract Terraform
+      unarchive:
+        src: "/tmp/terraform_{{ terraform_version }}_linux_amd64.zip"
+        dest: /tmp
+        remote_src: yes
+
+    - name: Install Terraform binary
+      copy:
+        src: /tmp/terraform
+        dest: /usr/local/bin/terraform
+        mode: '0755'
+        owner: root
+        group: root
+      become: yes
+
+    - name: Clean up temporary files
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "/tmp/terraform_{{ terraform_version }}_linux_amd64.zip"
+        - /tmp/terraform
+
+  when: terraform_check.rc != 0 or terraform_version not in terraform_check.stdout
+
+- name: Verify Terraform installation
+  command: terraform --version
+  register: terraform_verify
+  changed_when: false
+
+- name: Display Terraform version
+  debug:
+    msg: "Terraform installed: {{ terraform_verify.stdout_lines[0] }}"

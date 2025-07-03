@@ -1,0 +1,27 @@
+---
+- name: Setup pilot-hdc-lite single-VM platform
+  hosts: local
+  gather_facts: yes
+  vars:
+    # TODO update to the same as we use in staging
+    k3s_version: "v1.28.8+k3s1"
+    nodeport: 32443
+    kubectl_version: "1.28.8"
+    helm_version: "3.12.3"
+    terraform_version: "1.5.7"
+    
+  tasks:
+    - name: Install system dependencies
+      include_tasks: tasks/dependencies.yml
+
+    - name: Install and configure k3s
+      include_tasks: tasks/k3s.yml
+
+    - name: Setup kubectl configuration
+      include_tasks: tasks/kubectl.yml
+
+    - name: Install Terraform
+      include_tasks: tasks/terraform.yml
+
+    - name: Configure Traefik ingress
+      include_tasks: tasks/traefik.yml

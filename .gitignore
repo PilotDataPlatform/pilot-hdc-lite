@@ -1,0 +1,20 @@
+# Environment configuration
+.env
+
+# Terraform files
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+*.tfplan
+
+# Python virtual environment
+.venv/
+
+# Log files
+bootstrap.log
+k8s.log
+
+# Temporary files
+ignore_mds/*
+Makefile

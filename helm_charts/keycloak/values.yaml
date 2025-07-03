@@ -1,0 +1,41 @@
+# Hostname will be overridden by Terraform with auto-detected IP
+image:
+  registry: docker.io
+  repository: bitnami/keycloak
+  tag: 20.0.5-debian-11-r4
+service:
+  type: ClusterIP
+extraEnvVars:
+  - name: KEYCLOAK_LOGLEVEL
+    value: DEBUG
+  - name: KEYCLOAK_PROXY_ADDRESS_FORWARDING
+    value: "true"
+  - name: JAVA_OPTS
+    value: "-Dkeycloak.profile.feature.scripts=enabled -Dkeycloak.profile.feature.upload_scripts=enabled -Dkeycloak.profile.feature.token_exchange=enabled -Dnashorn.args=--no-deprecation-warning"
+  - name: KEYCLOAK_DATABASE_NAME
+    value: "bitnami_keycloak"
+
+ingress:
+  enabled: true
+  apiVersion: networking.k8s.io/v1
+  annotations:
+    cert-manager.io/cluster-issuer: selfsigned-issuer
+    kubernetes.io/ingress.class: traefik
+  hostname: keycloak.local  # Overridden by Terraform with auto-detected IP
+  pathType: Prefix
+  path: /
+  servicePort: 80
+  tls: keycloak-tls-secret
+
+postgresql:
+  enabled: false
+
+externalDatabase:
+  host: "keycloak-postgres-postgresql.keycloak"
+  port: 5432
+  user: bn_keycloak
+  existingSecret: "keycloak-postgres-postgresql"
+  existingSecretPasswordKey: "password"
+
+logging:
+  level: INFO
