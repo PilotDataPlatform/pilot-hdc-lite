@@ -1,0 +1,35 @@
+# This vaule.yaml is for the postgres in utility namespace
+image:
+  registry: docker-registry.ebrains.eu
+  repository: hdc-services-external/postgresql
+
+global:
+  postgresql:
+    auth:
+      username: postgres
+      database: postgres
+
+fullnameOverride: postgres
+primary:
+  initdb:
+    scriptsConfigMap: "postgres-init-scripts"
+
+  extendedConfiguration: |
+        max_connections = 500
+        shared_buffers = 1500
+        cron.database_name = 'metadata'
+  resources:
+    limits:
+      cpu: 1
+      memory: 512Mi
+    requests:
+      cpu: "20m"
+      memory: 128Mi
+
+metrics:
+  enabled: false
+
+postgresqlSharedPreloadLibraries: "pgaudit,pg_cron"
+
+serviceAccount:
+  create: false
