@@ -18,6 +18,7 @@ export TF_VAR_docker_registry_username="${DOCKER_REGISTRY_USERNAME:-}"
 export TF_VAR_docker_registry_password="${DOCKER_REGISTRY_PASSWORD:-}"
 export TF_VAR_docker_registry_external_username="${DOCKER_REGISTRY_EXTERNAL_USERNAME:-}"
 export TF_VAR_docker_registry_external_password="${DOCKER_REGISTRY_EXTERNAL_PASSWORD:-}"
+export TF_VAR_rsa_public_key="${RSA_PUBLIC_KEY:-}"
 
 # Check for auto-approve flag
 AUTO_APPROVE=false

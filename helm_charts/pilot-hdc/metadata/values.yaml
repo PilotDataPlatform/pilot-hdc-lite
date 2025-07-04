@@ -1,0 +1,75 @@
+appConfig:
+  port: 5066
+  env: staging
+  srv_namespace: metadata
+
+image:
+  repository: docker-registry.ebrains.eu/hdc-services-image/metadata
+  tag: 251
+  pullPolicy: IfNotPresent
+
+fullnameOverride: metadata
+container:
+  port: 5066
+
+service:
+  type: ClusterIP
+  port: 5066
+
+extraEnv:
+  DCM_PROJECT_ID: generate_id
+  RUN_MIGRATIONS: "true"
+  AUTH_HOST: "http://auth.utility:5061"
+  KAFKA_URL: "kafka.utility.svc.cluster.local:9092"
+  KAFKA_TOPIC: "metadata.items"
+extraEnvYaml:
+  - name: OPSDB_UTILITY_USERNAME
+    value: postgres
+  - name: OPSDB_UTILITY_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: postgres
+        key: postgres-password
+  - name: OPSDB_UTILITY_HOST
+    value: postgres.utility
+  - name: OPSDB_UTILITY_PORT
+    value: "5432"
+  - name: RSA_PUBLIC_KEY
+    valueFrom:
+      secretKeyRef:
+        name: rsa-public-key-secret
+        key: rsa-public-key
+
+resources:
+  limits:
+    cpu: "1"
+    memory: 500Mi
+  requests:
+    cpu: "10m"
+    memory: 50Mi
+
+readinessProbe:
+  failureThreshold: 3
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  successThreshold: 1
+  tcpSocket:
+    port: 5066
+
+livenessProbe:
+  failureThreshold: 3
+  httpGet:
+    path: /v1/health
+    port: 5066
+    scheme: HTTP
+  periodSeconds: 10
+  successThreshold: 1
+  timeoutSeconds: 3
+
+replicaCount: 1
+
+updateStrategy:
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 33%
+  type: RollingUpdate

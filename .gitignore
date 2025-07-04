@@ -18,3 +18,6 @@ k8s.log
 # Temporary files
 ignore_mds/*
 Makefile
+
+# PostgreSQL init scripts (contains sensitive schema information)
+helm_charts/postgres/postgres-init.sql

@@ -16,7 +16,7 @@ else
     if [[ -f "${SCRIPT_DIR}/.env.example" ]]; then
         echo "ERROR: Missing .env file. Copy .env.example to .env and configure: cp .env.example .env"
     else
-        echo "ERROR: Missing .env file. Create one with: EXTERNAL_IP=<your-external-ip>"
+        echo "ERROR: Missing .env file. Create one with: EXTERNAL_IP=<your-external-ip> and RSA_PUBLIC_KEY=<your-rsa-public-key>"
     fi
     exit 1
 fi
@@ -24,6 +24,11 @@ fi
 # Validate required variables
 if [[ -z "${EXTERNAL_IP}" ]]; then
     echo "ERROR: EXTERNAL_IP must be set in .env file"
+    exit 1
+fi
+
+if [[ -z "${RSA_PUBLIC_KEY}" ]]; then
+    echo "ERROR: RSA_PUBLIC_KEY must be set in .env file"
     exit 1
 fi
 

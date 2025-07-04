@@ -1,0 +1,36 @@
+# helm helm-vault-values.yml
+global:
+  enabled: true
+  tlsDisable: true
+
+server:
+  affinity: ""
+  
+  # Dev mode - no unsealing required, ready immediately
+  dev:
+    enabled: true
+    devRootToken: "root"
+  
+  # HA not needed in dev mode
+  ha:
+    enabled: false
+
+  service:
+    type: ClusterIP
+    
+  # Resource limits optimized for dev mode
+  resources:
+    requests:
+      memory: 128Mi
+      cpu: 50m
+    limits:
+      memory: 256Mi
+      cpu: 200m
+
+injector:
+  enabled: false
+
+ui:
+  enabled: true
+  serviceType: ClusterIP
+  

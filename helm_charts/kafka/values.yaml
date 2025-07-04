@@ -1,0 +1,127 @@
+## Kafka's Java Heap size.
+heapOpts: -Xms256M -Xmx256M
+
+## Keep off unless performing a migration
+deleteTopicEnable: false
+
+# Replication - Single node setup
+replicaCount: 1
+defaultReplicationFactor: 1
+offsetsTopicReplicationFactor: 1
+## The replication factor for the transaction topic
+transactionStateLogReplicationFactor: 1
+## Overridden min.insync.replicas config for the transaction topic
+transactionStateLogMinIsr: 1
+
+persistence:
+    enabled: true
+    size: 2Gi
+
+zookeeper:
+  replicaCount: 1
+
+  heapSize: 256
+
+  persistence:
+    enabled: true
+    size: 1Gi
+
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+deleteTopicEnable: true
+
+service:
+  type: NodePort
+
+extraDeploy:
+  - |
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: {{ include "kafka.name" . }}-connect
+      labels: {{- include "common.labels.standard" . | nindent 4 }}
+        app.kubernetes.io/component: connector
+    spec:
+      replicas: 1
+      selector:
+        matchLabels: {{- include "common.labels.matchLabels" . | nindent 6 }}
+          app.kubernetes.io/component: connector
+      template:
+        metadata:
+          labels: {{- include "common.labels.standard" . | nindent 8 }}
+            app.kubernetes.io/component: connector
+        spec:
+          initContainers:
+            - name: plugins-downloader
+              image: busybox
+              imagePullPolicy: IfNotPresent
+              command: ["sh", "/tmp/kafka_plugin_downloader.sh"]
+              volumeMounts:
+                - name: kafka-connect-plugins-dir
+                  mountPath: /tmp
+                - name: plugin-downloader
+                  mountPath: /tmp/kafka_plugin_downloader.sh
+                  subPath: kafka_plugin_downloader.sh
+          containers:
+            - name: connect
+              image: debezium/connect:1.1
+              imagePullPolicy: IfNotPresent
+              ports:
+                - name: connector
+                  containerPort: 8083
+              volumeMounts:
+                - name: configuration
+                  mountPath: /bitnami/kafka/config
+              volumeMounts:
+                - name: kafka-connect-plugins-dir
+                  mountPath: /tmp  
+              env:
+              - name: BOOTSTRAP_SERVERS
+                value: "kafka:9092"
+              - name: GROUP_ID
+                value: "sde_group"
+              - name: CONFIG_STORAGE_TOPIC
+                value: "sde_storage_topic"
+              - name: OFFSET_STORAGE_TOPIC
+                value: "sde_offset_topic"
+              - name: KAFKA_CONNECT_PLUGINS_DIR
+                value: "/kafka/connect,/tmp"
+          volumes:
+            - name: configuration
+              configMap:
+                name: {{ include "kafka.name" . }}-connect
+            - name: kafka-connect-plugins-dir
+              emptyDir: {}
+            - name: plugin-downloader
+              configMap:
+                name: kafka-plugin-downloader
+                defaultMode: 0777
+
+  - |
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: {{ include "kafka.name" . }}-connect
+      labels: {{- include "common.labels.standard" . | nindent 4 }}
+        app.kubernetes.io/component: connector
+    data:
+      connect-standalone.properties: |-
+        bootstrap.servers = {{ include "kafka.name" . }}-0.{{ include "kafka.name" . }}-headless.{{ .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.service.port }}
+  - |
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: {{ include "kafka.name" . }}-connect
+      labels: {{- include "common.labels.standard" . | nindent 4 }}
+        app.kubernetes.io/component: connector
+    spec:
+      ports:
+        - protocol: TCP
+          port: 8083
+          targetPort: connector
+      selector: {{- include "common.labels.matchLabels" . | nindent 4 }}
+        app.kubernetes.io/component: connector
+
