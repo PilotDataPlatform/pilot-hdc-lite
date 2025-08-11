@@ -39,6 +39,26 @@ variable "metadata_app_version" {
   default = "2.2.9"
 }
 
+variable "project_chart_version" {
+  type    = string
+  default = "0.2.1"
+}
+
+variable "project_app_version" {
+  type    = string
+  default = "2.3.7"
+}
+
+variable "dataops_chart_version" {
+  type    = string
+  default = "0.2.1"
+}
+
+variable "dataops_app_version" {
+  type    = string
+  default = "2.5.7"
+}
+
 variable "docker_registry_username" {
   type        = string
   description = "Username for docker-registry.ebrains.eu"
