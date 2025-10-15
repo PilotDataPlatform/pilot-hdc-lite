@@ -88,6 +88,11 @@ variable "kafka_chart_version" {
   default = "20.0.3"
 }
 
+variable "redis_chart_version" {
+  type    = string
+  default = "16.11.2"
+}
+
 variable "docker_registry_external_username" {
   type        = string
   description = "Username for docker-registry.ebrains.eu hdc-services-external project"
