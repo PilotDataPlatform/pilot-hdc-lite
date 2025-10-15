@@ -1,0 +1,31 @@
+# Set predictable resource naming
+fullnameOverride: redis
+
+# Override global settings for private registry
+global:
+  imageRegistry: docker-registry.ebrains.eu
+  imagePullSecrets:
+    - docker-registry-external-secret
+
+# Custom image repository path
+image:
+  repository: hdc-services-external/bitnami/redis
+
+# Master-only deployment (no replication)
+architecture: standalone
+
+# Master node configuration
+master:
+  persistence:
+    size: 1Gi
+  resources:
+    requests:
+      memory: 128Mi
+      cpu: 100m
+    limits:
+      memory: 256Mi
+      cpu: 500m
+
+# Explicitly disable replicas
+replica:
+  replicaCount: 0

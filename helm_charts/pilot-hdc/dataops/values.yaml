@@ -1,0 +1,62 @@
+image:
+  repository: docker-registry.ebrains.eu/hdc-services-image/dataops
+  tag: 274
+  pullPolicy: IfNotPresent
+
+deploymentAnnotations:
+  "sidecar.jaegertracing.io/inject": "true"
+
+replicaCount: 1
+
+fullnameOverride: dataops
+
+container:
+  port: 5063
+
+service:
+  type: ClusterIP
+  port: 5063
+
+extraEnv:
+  HOST: "0.0.0.0"
+  RDS_HOST: "postgres.utility"
+  RDS_PORT: 5432
+  RDS_NAME: "dataops"
+  RDS_USERNAME: "postgres"
+  RDS_SCHEMA: "public"
+  RDS_ECHO_SQL_QUERIES: false
+  LINEAGE_SERVICE: "http://lineage.utility:5064"
+  QUEUE_SERVICE: "http://queue-producer.greenroom:6060"
+  METADATA_SERVICE: "http://metadata.utility:5066"
+  AUTH_SERVICE: "http://auth.utility:5061"
+  REDIS_HOST: "redis-master.redis"
+  REDIS_PORT: 6379
+  REDIS_DB: 0
+  MINIO_HOST: "http://minio.minio"
+  MINIO_PORT: 9000
+  WORKERS: 2
+  RSA_PUBLIC_KEY: "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUF0QTBrU0VwaW10VjA1WGlRcmFWQjlBZkRlTXFGWk9xM0ZTWE05Mk9sYjQ0R1ZHVmpjdXl2Z1V5YUNpNmIzM2E0cEdoanhvTTB4ZFVPaC9vQ0lFQURrN3E4QUo3UVdyZlNDcmd2Uk1uNkRTbkxCUFNHeFlpT3ZxMTVISDFFbGZrU1V1Ukg2TTdQSm9FZDZQRUQweXRXS3FNcXpiSFhFMEs2cEI3Y05vNmdCUjYwaHNjZ2FXVlhPMUtybDFEcVo5ZHVRME1CSXlIcitZU1pkRjhTUWdUOW5aK0psa2ZHbG41bGRkNEE1eUpBTElvRVlBbVVRbVJHRTI2VEhYeG5lL0xyWTk2ZnAzeGVEWlQwdDR3SFliZTVZektob09OazYwcitYeTN4QVJjQVFzbjk5S2kxSGNqMldLbzhZMjZqcTZValVZM0hwUGJQeDEwTTNqRVJKT2UxeHdJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0t"
+
+extraEnvYaml:
+  - name: RDS_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: dataops-utility-secret
+        key: RDS_PASSWORD
+  - name: REDIS_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: dataops-utility-secret
+        key: REDIS_PASSWORD
+
+appConfig:
+  env: "staging"
+  port: 5063
+
+resources:
+  requests:
+    memory: 50Mi
+    cpu: 10m
+  limits:
+    memory: 1000Mi
+    cpu: 1
