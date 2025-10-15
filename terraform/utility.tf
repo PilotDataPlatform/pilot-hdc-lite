@@ -298,7 +298,7 @@ resource "helm_release" "dataops" {
   chart            = "dataops-service"
   version          = var.dataops_chart_version
   namespace        = kubernetes_namespace.utility.metadata[0].name
-  create_namespace = "true"
+  create_namespace = true
   timeout          = "300"
 
   values = [file("../helm_charts/pilot-hdc/dataops/values.yaml")]

@@ -37,7 +37,7 @@ resource "helm_release" "redis" {
   repository       = "https://pilotdataplatform.github.io/helm-charts/"
   chart            = "redis"
   namespace        = kubernetes_namespace.redis.metadata[0].name
-  create_namespace = "false"
+  create_namespace = false
   timeout          = "300"
   version          = var.redis_chart_version
 
