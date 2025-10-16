@@ -22,7 +22,7 @@ extraEnv:
   RDS_HOST: "postgres.utility"
   RDS_PORT: 5432
   RDS_NAME: "dataops"
-  RDS_USERNAME: "postgres"
+  RDS_USERNAME: "dataops_user"
   RDS_SCHEMA: "public"
   RDS_ECHO_SQL_QUERIES: false
   LINEAGE_SERVICE: "http://lineage.utility:5064"

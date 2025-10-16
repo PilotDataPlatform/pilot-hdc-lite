@@ -24,16 +24,25 @@ extraEnv:
   KAFKA_TOPIC: "metadata.items"
 extraEnvYaml:
   - name: OPSDB_UTILITY_USERNAME
-    value: postgres
+    valueFrom:
+      secretKeyRef:
+        name: metadata-db-credential
+        key: DB_USERNAME
   - name: OPSDB_UTILITY_PASSWORD
     valueFrom:
       secretKeyRef:
-        name: postgres
-        key: postgres-password
+        name: metadata-db-credential
+        key: DB_PASSWORD
   - name: OPSDB_UTILITY_HOST
-    value: postgres.utility
+    valueFrom:
+      secretKeyRef:
+        name: metadata-db-credential
+        key: DB_HOST
   - name: OPSDB_UTILITY_PORT
-    value: "5432"
+    valueFrom:
+      secretKeyRef:
+        name: metadata-db-credential
+        key: DB_PORT
   - name: RSA_PUBLIC_KEY
     valueFrom:
       secretKeyRef:

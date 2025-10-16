@@ -125,3 +125,31 @@ variable "rsa_public_key" {
   default     = ""
   sensitive   = true
 }
+
+variable "auth_chart_version" {
+  type    = string
+  default = "0.7.2"
+}
+
+variable "auth_app_version" {
+  type    = string
+  default = "2.2.27"
+}
+
+variable "keycloak_admin_username" {
+  type        = string
+  description = "Keycloak admin username"
+  default     = "user"
+}
+
+variable "keycloak_url" {
+  type        = string
+  description = "Keycloak URL for Terraform provider (defaults to external nip.io URL)"
+  default     = ""
+}
+
+variable "demo_mode" {
+  type        = bool
+  description = "Enable demo mode: Terraform provider accepts self-signed certificates. Set to false to require CA-signed certificates."
+  default     = false
+}
