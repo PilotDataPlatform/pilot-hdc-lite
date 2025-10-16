@@ -58,3 +58,6 @@ When you review a PR, focus comments on the following. Prefer **concrete, action
 - **Helm atomic**: “Set `atomic=true` and `cleanup_on_fail=true` in the `helm_release` to ensure safe rollouts/automatic rollback.”
 - **Probes/limits**: “Please add readiness/liveness probes and CPU/memory requests/limits to this workload.”
 - **Ansible idempotency**: “This task looks non-idempotent; please use a module or add `creates/only_if`-style guards.”
+
+# COPILOT SIGNATURE
+When you add a review or write a comment, always sign with `Cheers`.
