@@ -36,23 +36,23 @@ extraEnvYaml:
   - name: OPSDB_UTILITY_USERNAME
     valueFrom:
       secretKeyRef:
-        name: opsdb-utility-credential
-        key: username
+        name: project-db-credential
+        key: DB_USERNAME
   - name: OPSDB_UTILITY_PASSWORD
     valueFrom:
       secretKeyRef:
-        name: opsdb-utility-credential
-        key: password
+        name: project-db-credential
+        key: DB_PASSWORD
   - name: OPSDB_UTILITY_HOST
     valueFrom:
       secretKeyRef:
-        name: opsdb-utility-credential
-        key: host
+        name: project-db-credential
+        key: DB_HOST
   - name: OPSDB_UTILITY_PORT
     valueFrom:
       secretKeyRef:
-        name: opsdb-utility-credential
-        key: port
+        name: project-db-credential
+        key: DB_PORT
   - name: S3_ACCESS_KEY
     valueFrom:
       secretKeyRef:

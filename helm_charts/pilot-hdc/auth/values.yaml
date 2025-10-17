@@ -1,0 +1,110 @@
+appConfig:
+  port: 5061
+  env: staging
+  srv_namespace: service_auth
+
+image:
+  repository: docker-registry.ebrains.eu/hdc-services-image/auth
+  tag: 2.2.27
+  pullPolicy: IfNotPresent
+
+fullnameOverride: auth
+
+container:
+  port: 5061
+
+service:
+  type: ClusterIP
+  port: 5061
+
+extraEnv:
+  # Simplified alpha configuration - Keycloak only, no LDAP/AD/FreeIPA
+  EMAIL_SUPPORT: "support@pilot-hdc-lite.local"
+  EMAIL_ADMIN: "admin@pilot-hdc-lite.local"
+  EMAIL_HELPDESK: "helpdesk@pilot-hdc-lite.local"
+  RDS_SCHEMA_PREFIX: "pilot"
+  RDS_HOST: "postgres.utility"
+  RDS_PORT: "5432"
+  RDS_DBNAME: "auth"
+  RDS_PRE_PING: true
+  RDS_USER: "auth_user"
+  PROJECT_NAME: "Pilot HDC Lite"
+  IDENTITY_BACKEND: "keycloak"
+  # Disable LDAP/AD features for alpha
+  ENABLE_ACTIVE_DIRECTORY: false
+  LDAP_URL: ""
+  LDAP_ADMIN_DN: ""
+  LDAP_ADMIN_SECRET: ""
+  # Keycloak configuration - uses HTTPS external ingress
+  KEYCLOAK_SERVER_URL: "https://keycloak.${EXTERNAL_IP}.nip.io"
+  KEYCLOAK_CLIENT_ID: "pilot-hdc-lite"
+  KEYCLOAK_REALM: "master"
+  KEYCLOAK_ID: "pilot-hdc-lite"
+  # Redis configuration
+  REDIS_HOST: "redis-master.redis"
+  REDIS_PORT: "6379"
+  REDIS_DB: "0"
+  # Single worker for alpha (vs 2+ in production)
+  WORKERS: 1
+  # Application paths
+  START_PATH: "pilot-hdc-lite"
+  GUIDE_PATH: ""
+  # AD groups (required fields, not used in Keycloak-only mode)
+  AD_USER_GROUP: "users"
+  AD_ADMIN_GROUP: "admin"
+  # Domain and invitation URLs - HTTPS only
+  DOMAIN_NAME: "https://${EXTERNAL_IP}.nip.io"
+  INVITATION_URL_LOGIN: "https://${EXTERNAL_IP}.nip.io/login"
+  INVITATION_REGISTER_URL: "https://${EXTERNAL_IP}.nip.io/self-registration/{invitation_code}/"
+
+extraEnvYaml:
+  - name: RDS_PWD
+    valueFrom:
+      secretKeyRef:
+        name: auth-utility-secret
+        key: RDS_PWD
+  - name: REDIS_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: auth-utility-secret
+        key: REDIS_PASSWORD
+  - name: KEYCLOAK_SECRET
+    valueFrom:
+      secretKeyRef:
+        name: auth-utility-secret
+        key: KEYCLOAK_CLIENT_SECRET
+
+resources:
+  limits:
+    cpu: "100m"
+    memory: 100Mi
+  requests:
+    cpu: "50m"
+    memory: 50Mi
+
+readinessProbe:
+  failureThreshold: 3
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  successThreshold: 1
+  tcpSocket:
+    port: 5061
+
+livenessProbe:
+  failureThreshold: 3
+  httpGet:
+    path: /v1/health
+    port: 5061
+    scheme: HTTP
+  periodSeconds: 30
+  successThreshold: 1
+  timeoutSeconds: 5
+
+# Single replica for alpha
+replicaCount: 1
+
+updateStrategy:
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0
+  type: RollingUpdate

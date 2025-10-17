@@ -4,6 +4,27 @@ resource "kubernetes_namespace" "utility" {
   }
 }
 
+# Generate random passwords for service-specific database users
+resource "random_password" "metadata_db_password" {
+  length  = 32
+  special = true
+}
+
+resource "random_password" "project_db_password" {
+  length  = 32
+  special = true
+}
+
+resource "random_password" "dataops_db_password" {
+  length  = 32
+  special = true
+}
+
+resource "random_password" "auth_db_password" {
+  length  = 32
+  special = true
+}
+
 resource "kubernetes_secret" "docker_registry" {
   metadata {
     name      = "docker-registry-secret"
@@ -140,7 +161,7 @@ resource "kubernetes_secret" "dataops_utility_secret" {
   type = "Opaque"
 
   data = {
-    "RDS_PASSWORD"   = data.kubernetes_secret.postgres_credential.data["postgres-password"]
+    "RDS_PASSWORD"   = random_password.dataops_db_password.result
     "REDIS_PASSWORD" = data.kubernetes_secret.redis_credential.data["redis-password"]
   }
 
@@ -149,9 +170,56 @@ resource "kubernetes_secret" "dataops_utility_secret" {
   }
 
   depends_on = [
-    data.kubernetes_secret.postgres_credential,
+    random_password.dataops_db_password,
     data.kubernetes_secret.redis_credential
   ]
+}
+
+# Service-specific database credential secrets
+resource "kubernetes_secret" "metadata_db_credential" {
+  metadata {
+    name      = "metadata-db-credential"
+    namespace = kubernetes_namespace.utility.metadata[0].name
+  }
+
+  type = "Opaque"
+
+  data = {
+    "DB_USERNAME" = "metadata_user"
+    "DB_PASSWORD" = random_password.metadata_db_password.result
+    "DB_HOST"     = "postgres.utility"
+    "DB_PORT"     = "5432"
+    "DB_NAME"     = "metadata"
+  }
+
+  lifecycle {
+    ignore_changes = [data]
+  }
+
+  depends_on = [random_password.metadata_db_password]
+}
+
+resource "kubernetes_secret" "project_db_credential" {
+  metadata {
+    name      = "project-db-credential"
+    namespace = kubernetes_namespace.utility.metadata[0].name
+  }
+
+  type = "Opaque"
+
+  data = {
+    "DB_USERNAME" = "project_user"
+    "DB_PASSWORD" = random_password.project_db_password.result
+    "DB_HOST"     = "postgres.utility"
+    "DB_PORT"     = "5432"
+    "DB_NAME"     = "project"
+  }
+
+  lifecycle {
+    ignore_changes = [data]
+  }
+
+  depends_on = [random_password.project_db_password]
 }
 
 resource "kubernetes_config_map" "postgres_init" {
@@ -161,8 +229,20 @@ resource "kubernetes_config_map" "postgres_init" {
   }
 
   data = {
-    "my_init_script.sh" = file("../helm_charts/postgres/postgres-init.sql")
+    "my_init_script.sh" = templatefile("../helm_charts/postgres/postgres-init.sql", {
+      METADATA_DB_PASSWORD = random_password.metadata_db_password.result
+      PROJECT_DB_PASSWORD  = random_password.project_db_password.result
+      DATAOPS_DB_PASSWORD  = random_password.dataops_db_password.result
+      AUTH_DB_PASSWORD     = random_password.auth_db_password.result
+    })
   }
+
+  depends_on = [
+    random_password.metadata_db_password,
+    random_password.project_db_password,
+    random_password.dataops_db_password,
+    random_password.auth_db_password
+  ]
 }
 
 resource "helm_release" "metadata" {
@@ -194,7 +274,8 @@ resource "helm_release" "metadata" {
 
   depends_on = [
     helm_release.postgres,
-    kubernetes_secret.rsa_public_key
+    kubernetes_secret.rsa_public_key,
+    kubernetes_secret.metadata_db_credential
   ]
 }
 
@@ -285,7 +366,7 @@ resource "helm_release" "project" {
 
   depends_on = [
     helm_release.postgres,
-    kubernetes_secret.opsdb_utility_credential,
+    kubernetes_secret.project_db_credential,
     kubernetes_secret.minio_credential
   ]
 }
@@ -316,5 +397,64 @@ resource "helm_release" "dataops" {
   depends_on = [
     helm_release.redis,
     kubernetes_secret.dataops_utility_secret
+  ]
+}
+
+# Auth service secret - combines DB, Redis, and Keycloak credentials
+resource "kubernetes_secret" "auth_utility_secret" {
+  metadata {
+    name      = "auth-utility-secret"
+    namespace = kubernetes_namespace.utility.metadata[0].name
+  }
+
+  type = "Opaque"
+
+  data = {
+    "RDS_PWD"                 = random_password.auth_db_password.result
+    "REDIS_PASSWORD"          = data.kubernetes_secret.redis_credential.data["redis-password"]
+    "KEYCLOAK_CLIENT_SECRET"  = keycloak_openid_client.pilot_hdc_lite.client_secret
+  }
+
+  lifecycle {
+    ignore_changes = [data]
+  }
+
+  depends_on = [
+    random_password.auth_db_password,
+    data.kubernetes_secret.redis_credential,
+    keycloak_openid_client.pilot_hdc_lite
+  ]
+}
+
+# Auth service deployment
+resource "helm_release" "auth" {
+
+  name = "auth-service"
+
+  repository = "https://pilotdataplatform.github.io/helm-charts/"
+  chart      = "auth-service"
+  version    = var.auth_chart_version
+  namespace  = kubernetes_namespace.utility.metadata[0].name
+  timeout    = "300"
+
+  values = [templatefile("../helm_charts/pilot-hdc/auth/values.yaml", {
+    EXTERNAL_IP = var.external_ip
+  })]
+
+  set {
+    name  = "image.tag"
+    value = var.auth_app_version
+  }
+
+  set {
+    name  = "imagePullSecrets[0].name"
+    value = kubernetes_secret.docker_registry.metadata[0].name
+  }
+
+  depends_on = [
+    helm_release.postgres,
+    helm_release.redis,
+    helm_release.keycloak,
+    kubernetes_secret.auth_utility_secret
   ]
 }
