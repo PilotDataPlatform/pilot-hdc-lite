@@ -437,7 +437,9 @@ resource "helm_release" "auth" {
   namespace  = kubernetes_namespace.utility.metadata[0].name
   timeout    = "300"
 
-  values = [file("../helm_charts/pilot-hdc/auth/values.yaml")]
+  values = [templatefile("../helm_charts/pilot-hdc/auth/values.yaml", {
+    EXTERNAL_IP = var.external_ip
+  })]
 
   set {
     name  = "image.tag"

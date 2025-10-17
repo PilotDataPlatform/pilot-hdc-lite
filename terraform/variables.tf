@@ -138,8 +138,8 @@ variable "auth_app_version" {
 
 variable "keycloak_admin_username" {
   type        = string
-  description = "Keycloak admin username"
-  default     = "user"
+  description = "Keycloak admin username (must be explicitly set for security)"
+  sensitive   = true
 }
 
 variable "keycloak_url" {
