@@ -18,7 +18,7 @@ When you review a PR, focus comments on the following. Prefer **concrete, action
 - Ensure `terraform` blocks set `required_version` and **providers are pinned** (no floating `~> x.y` without justification).
 - Backends must not be silently changed; call out any backend/state changes and ask for migration notes.
 - **Modules and resources**: flag use of deprecated arguments; request references to provider docs in PR if new resources are introduced.
-- **Variables/outputs**: if defaults or types change, ask for updates to `.env.example` and README snippets.
+- **Variables/outputs**: if defaults or types change, ask for updates to `.env.example` and README snippets when they surface as environment inputs; Terraform-only knobs (e.g., chart/app version selectors in `terraform/variables.tf`) can stay documented there.
 - **Security**: forbid hard-coded secrets; require use of variables, data sources, or K8s Secrets.
 - Suggest adding/using `tflint` and `terraform-docs` if not present when drift is likely.
 
@@ -58,6 +58,3 @@ When you review a PR, focus comments on the following. Prefer **concrete, action
 - **Helm atomic**: “Set `atomic=true` and `cleanup_on_fail=true` in the `helm_release` to ensure safe rollouts/automatic rollback.”
 - **Probes/limits**: “Please add readiness/liveness probes and CPU/memory requests/limits to this workload.”
 - **Ansible idempotency**: “This task looks non-idempotent; please use a module or add `creates/only_if`-style guards.”
-
-# COPILOT SIGNATURE
-When you add a review or write a comment, always sign with `Cheers`.
