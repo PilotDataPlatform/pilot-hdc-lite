@@ -24,7 +24,7 @@ When you review a PR, focus comments on the following. Prefer **concrete, action
 
 ### 2) Helm (values/charts)
 - Require **pinned chart versions**; no implicit latest.
-- For `helm_release`, require: `atomic=true`, `cleanup_on_fail=true`, `create_namespace=true`, `dependency_update=true`.
+- For `helm_release`, require: `atomic=true`, `cleanup_on_fail=true`, and `namespace` must reference an explicit `kubernetes_namespace` resource (e.g., `namespace = kubernetes_namespace.utility.metadata[0].name`) to ensure proper dependency ordering.
 - Workloads must have **readiness/liveness probes**, **requests/limits**, and (where applicable) **PodDisruptionBudget**.
 - If metrics are exposed, ensure/add **ServiceMonitor/PodMonitor** configuration.
 
@@ -54,7 +54,7 @@ When you review a PR, focus comments on the following. Prefer **concrete, action
 - If something is ambiguous, ask the author to add a brief doc comment near the change.
 
 ## Ready-made comment snippets (use as needed)
-- **Terraform pins**: “Please pin provider/module versions (avoid floating) and set/confirm `required_version` in the root `terraform` block.”
-- **Helm atomic**: “Set `atomic=true` and `cleanup_on_fail=true` in the `helm_release` to ensure safe rollouts/automatic rollback.”
-- **Probes/limits**: “Please add readiness/liveness probes and CPU/memory requests/limits to this workload.”
-- **Ansible idempotency**: “This task looks non-idempotent; please use a module or add `creates/only_if`-style guards.”
+- **Terraform pins**: "Please pin provider/module versions (avoid floating) and set/confirm `required_version` in the root `terraform` block."
+- **Helm atomic**: "Set `atomic=true` and `cleanup_on_fail=true` in the `helm_release` to ensure safe rollouts/automatic rollback. Ensure `namespace` references an explicit `kubernetes_namespace` resource for proper dependency ordering."
+- **Probes/limits**: "Please add readiness/liveness probes and CPU/memory requests/limits to this workload."
+- **Ansible idempotency**: "This task looks non-idempotent; please use a module or add `creates/only_if`-style guards."
