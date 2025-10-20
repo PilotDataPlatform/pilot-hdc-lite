@@ -1,0 +1,109 @@
+image:
+  repository: docker-registry.ebrains.eu/hdc-services-image/bff-web
+  tag: 2.2.68
+  pullPolicy: IfNotPresent
+  tagPrefix: "bff"
+
+fullnameOverride: bff
+
+labels:
+  app: "bff"
+  instance: "bff-service"
+
+replicaCount: 1
+
+container:
+  name: bff
+  ports:
+    - containerPort: 5060
+    - containerPort: 3000
+
+service:
+  type: ClusterIP
+  ports:
+    - port: 5060
+      targetPort:
+      protocol: TCP
+      name: http
+    - port: 3000
+      targetPort:
+      protocol: TCP
+      name: portal-bff
+
+appConfig:
+  env: "staging"
+
+extraEnv:
+  SITE_DOMAIN: "https://${EXTERNAL_IP}.nip.io"
+  CORE_ZONE_LABEL: "Core"
+  GREENROOM_ZONE_LABEL: "Greenroom"
+  PROJECT_NAME: "Pilot HDC Lite"
+  KEYCLOAK_REALM: "master"
+  AD_USER_GROUP: "users"
+  AD_PROJECT_GROUP_PREFIX: "pilot-hdc"
+  EMAIL_SUPPORT: "support@pilot-hdc-lite.local"
+  EMAIL_SUPPORT_REPLY_TO: "no-reply@pilot-hdc-lite.local"
+  EMAIL_ADMIN: "admin@pilot-hdc-lite.local"
+  EMAIL_HELPDESK: "helpdesk@pilot-hdc-lite.local"
+  KONG_PATH: "/pilot-hdc/"
+  RESOURCE_REQUEST_ADMIN: "admin"
+  MINIO_BUCKET_ENCRYPTION: "False"
+  LDAP_USER_OBJECTCLASS: "cn"
+  LDAP_SET_GIDNUMBER: true
+  S3_GATEWAY: "True"
+  INVITATION_URL_LOGIN: "https://${EXTERNAL_IP}.nip.io/login/"
+  # Alpha - services that ARE deployed
+  AUTH_SERVICE: "http://auth.utility:5061"
+  METADATA_SERVICE: "http://metadata.utility:5066"
+  PROJECT_SERVICE: "http://project.utility:5064"
+  DATAOPS_SERVICE: "http://dataops.utility:5063"
+  # Alpha - MinIO configuration
+  MINIO_HOST: "minio.minio:9000"
+  # Alpha - Redis configuration
+  REDIS_HOST: "redis-master.redis"
+  REDIS_PORT: 6379
+  # Alpha - OpenTelemetry/Prometheus disabled (no monitoring stack)
+  OPEN_TELEMETRY_ENABLED: false
+  ENABLE_PROMETHEUS_METRICS: false
+  # TODO IEBH-457: Alpha missing services - replace dummy values when these services are deployed
+  WORKSPACE_SERVICE: "http://localhost:5068"
+  UPLOAD_SERVICE: "http://localhost:5079"
+  KG_SERVICE: "http://localhost:8000"
+  PROVENANCE_SERVICE: "http://localhost:5077"
+  NOTIFY_SERVICE: "http://localhost:5065"
+  DATASET_SERVICE: "http://localhost:5081"
+  DOWNLOAD_SERVICE_CORE: "http://localhost:5077"
+  DOWNLOAD_SERVICE_GR: "http://localhost:5077"
+  APPROVAL_SERVICE: "http://localhost:8000"
+  SEARCH_SERVICE: "http://localhost:5064"
+
+extraEnvYaml:
+  - name: MINIO_USERNAME
+    valueFrom:
+      secretKeyRef:
+        name: minio-credential
+        key: MINIO_ACCESS_KEY
+  - name: MINIO_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: minio-credential
+        key: MINIO_SECRET_KEY
+  - name: REDIS_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: redis
+        key: REDIS_PASSWORD
+
+resources:
+  requests:
+    memory: "50Mi"
+    cpu: "50m"
+  limits:
+    memory: "100Mi"
+    cpu: "100m"
+
+readinessProbe:
+  tcpSocket:
+    port: 5060
+  initialDelaySeconds: 5
+  periodSeconds: 10

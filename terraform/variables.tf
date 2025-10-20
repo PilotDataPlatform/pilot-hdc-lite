@@ -136,6 +136,16 @@ variable "auth_app_version" {
   default = "2.2.27"
 }
 
+variable "bff_chart_version" {
+  type    = string
+  default = "1.0.1"
+}
+
+variable "bff_app_version" {
+  type    = string
+  default = "2.2.68"
+}
+
 variable "keycloak_admin_username" {
   type        = string
   description = "Keycloak admin username (must be explicitly set for security)"

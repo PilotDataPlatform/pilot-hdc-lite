@@ -46,7 +46,7 @@ extraEnvYaml:
   - name: REDIS_PASSWORD
     valueFrom:
       secretKeyRef:
-        name: dataops-utility-secret
+        name: redis
         key: REDIS_PASSWORD
 
 appConfig:

@@ -151,7 +151,27 @@ resource "kubernetes_secret" "minio_credential" {
   depends_on = [data.kubernetes_secret.minio_credential]
 }
 
-# Create dataops utility secret (needs both DB and Redis passwords)
+# Shared Redis credential secret for utility namespace services
+resource "kubernetes_secret" "redis_utility_credential" {
+  metadata {
+    name      = "redis"
+    namespace = kubernetes_namespace.utility.metadata[0].name
+  }
+
+  type = "Opaque"
+
+  data = {
+    "REDIS_PASSWORD" = data.kubernetes_secret.redis_credential.data["redis-password"]
+  }
+
+  lifecycle {
+    ignore_changes = [data]
+  }
+
+  depends_on = [data.kubernetes_secret.redis_credential]
+}
+
+# Create dataops utility secret (only needs DB password, Redis uses shared secret)
 resource "kubernetes_secret" "dataops_utility_secret" {
   metadata {
     name      = "dataops-utility-secret"
@@ -161,8 +181,7 @@ resource "kubernetes_secret" "dataops_utility_secret" {
   type = "Opaque"
 
   data = {
-    "RDS_PASSWORD"   = random_password.dataops_db_password.result
-    "REDIS_PASSWORD" = data.kubernetes_secret.redis_credential.data["redis-password"]
+    "RDS_PASSWORD" = random_password.dataops_db_password.result
   }
 
   lifecycle {
@@ -170,8 +189,7 @@ resource "kubernetes_secret" "dataops_utility_secret" {
   }
 
   depends_on = [
-    random_password.dataops_db_password,
-    data.kubernetes_secret.redis_credential
+    random_password.dataops_db_password
   ]
 }
 
@@ -396,11 +414,12 @@ resource "helm_release" "dataops" {
 
   depends_on = [
     helm_release.redis,
+    kubernetes_secret.redis_utility_credential,
     kubernetes_secret.dataops_utility_secret
   ]
 }
 
-# Auth service secret - combines DB, Redis, and Keycloak credentials
+# Auth service secret - combines DB and Keycloak credentials (Redis uses shared secret)
 resource "kubernetes_secret" "auth_utility_secret" {
   metadata {
     name      = "auth-utility-secret"
@@ -410,9 +429,8 @@ resource "kubernetes_secret" "auth_utility_secret" {
   type = "Opaque"
 
   data = {
-    "RDS_PWD"                 = random_password.auth_db_password.result
-    "REDIS_PASSWORD"          = data.kubernetes_secret.redis_credential.data["redis-password"]
-    "KEYCLOAK_CLIENT_SECRET"  = keycloak_openid_client.pilot_hdc_lite.client_secret
+    "RDS_PWD"                = random_password.auth_db_password.result
+    "KEYCLOAK_CLIENT_SECRET" = keycloak_openid_client.pilot_hdc_lite.client_secret
   }
 
   lifecycle {
@@ -421,7 +439,6 @@ resource "kubernetes_secret" "auth_utility_secret" {
 
   depends_on = [
     random_password.auth_db_password,
-    data.kubernetes_secret.redis_credential,
     keycloak_openid_client.pilot_hdc_lite
   ]
 }
@@ -455,6 +472,45 @@ resource "helm_release" "auth" {
     helm_release.postgres,
     helm_release.redis,
     helm_release.keycloak,
+    kubernetes_secret.redis_utility_credential,
     kubernetes_secret.auth_utility_secret
+  ]
+}
+
+# BFF service deployment
+resource "helm_release" "bff" {
+
+  name = "bff-service"
+
+  repository       = "https://pilotdataplatform.github.io/helm-charts/"
+  chart            = "base-chart-hdc"
+  version          = var.bff_chart_version
+  namespace        = kubernetes_namespace.utility.metadata[0].name
+  create_namespace = true
+  timeout          = "300"
+  atomic           = true
+  cleanup_on_fail  = true
+
+  values = [templatefile("../helm_charts/pilot-hdc/bff/values.yaml", {
+    EXTERNAL_IP = var.external_ip
+  })]
+
+  set {
+    name  = "image.tag"
+    value = var.bff_app_version
+  }
+
+  set {
+    name  = "imagePullSecrets[0].name"
+    value = kubernetes_secret.docker_registry.metadata[0].name
+  }
+
+  depends_on = [
+    kubernetes_secret.redis_utility_credential,
+    kubernetes_secret.minio_credential,
+    helm_release.auth,
+    helm_release.metadata,
+    helm_release.project,
+    helm_release.dataops
   ]
 }
