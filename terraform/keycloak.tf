@@ -24,6 +24,17 @@ resource "helm_release" "keycloak" {
     value = "keycloak.${local.node_ip}.nip.io"
   }
 
+  # Set admin credentials from variables (required for security)
+  set {
+    name  = "auth.adminUser"
+    value = var.keycloak_admin_username
+  }
+
+  set_sensitive {
+    name  = "auth.adminPassword"
+    value = var.keycloak_admin_password
+  }
+
   depends_on = [
     helm_release.keycloak_postgres
   ]

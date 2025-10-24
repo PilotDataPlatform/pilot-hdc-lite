@@ -5,7 +5,7 @@ appConfig:
 
 image:
   repository: docker-registry.ebrains.eu/hdc-services-image/metadata
-  tag: 251
+  # tag: set by Terraform via var.metadata_app_version
   pullPolicy: IfNotPresent
 
 fullnameOverride: metadata

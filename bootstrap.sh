@@ -32,6 +32,25 @@ if [[ -z "${RSA_PUBLIC_KEY}" ]]; then
     exit 1
 fi
 
+if [[ -z "${KEYCLOAK_ADMIN_USERNAME}" ]]; then
+    echo "ERROR: KEYCLOAK_ADMIN_USERNAME must be set in .env file"
+    exit 1
+fi
+
+if [[ -z "${KEYCLOAK_ADMIN_PASSWORD}" ]]; then
+    echo "ERROR: KEYCLOAK_ADMIN_PASSWORD must be set in .env file"
+    echo "SECURITY: This password is required for Keycloak admin console access"
+    echo "Please set a strong password in your .env file"
+    exit 1
+fi
+
+if [[ -z "${KEYCLOAK_ADMIN_TEST_PASSWORD}" ]]; then
+    echo "ERROR: KEYCLOAK_ADMIN_TEST_PASSWORD must be set in .env file"
+    echo "INFO: This password is for portal login (username: ${KEYCLOAK_ADMIN_TEST_USERNAME:-testadmin})"
+    echo "Please set a strong password in your .env file"
+    exit 1
+fi
+
 # Colors for output
 GREEN='\033[0;32m'
 RED='\033[0;31m'
@@ -116,11 +135,65 @@ run_ansible() {
 
 run_terraform() {
     log "Checking for Terraform..."
-    
+
     if command -v terraform >/dev/null 2>&1; then
         log "Running Terraform deployment with external IP: ${EXTERNAL_IP}..."
         cd "${SCRIPT_DIR}/terraform"
+
+        # Check if this is a fresh deployment (Keycloak doesn't exist yet)
+        if ! kubectl get namespace keycloak &>/dev/null 2>&1; then
+            log "Fresh deployment detected - deploying Keycloak infrastructure first..."
+
+            # Source .env and export Terraform variables (required for targeted apply)
+            source "${SCRIPT_DIR}/.env"
+            export TF_VAR_external_ip="${EXTERNAL_IP}"
+            export TF_VAR_docker_registry_username="${DOCKER_REGISTRY_USERNAME:-}"
+            export TF_VAR_docker_registry_password="${DOCKER_REGISTRY_PASSWORD:-}"
+            export TF_VAR_docker_registry_external_username="${DOCKER_REGISTRY_EXTERNAL_USERNAME:-}"
+            export TF_VAR_docker_registry_external_password="${DOCKER_REGISTRY_EXTERNAL_PASSWORD:-}"
+            export TF_VAR_rsa_public_key="${RSA_PUBLIC_KEY:-}"
+            export TF_VAR_demo_mode="${DEMO:-false}"
+            export TF_VAR_keycloak_admin_username="${KEYCLOAK_ADMIN_USERNAME}"
+            export TF_VAR_keycloak_admin_password="${KEYCLOAK_ADMIN_PASSWORD}"
+            export TF_VAR_keycloak_admin_test_username="${KEYCLOAK_ADMIN_TEST_USERNAME:-testadmin}"
+            export TF_VAR_keycloak_admin_test_password="${KEYCLOAK_ADMIN_TEST_PASSWORD}"
+
+            terraform init
+            terraform apply -auto-approve -compact-warnings \
+                -target=kubernetes_namespace.keycloak \
+                -target=helm_release.keycloak_postgres \
+                -target=helm_release.keycloak
+
+            log "Waiting for Keycloak pods to be ready (timeout: 5 minutes)..."
+            kubectl wait --for=condition=ready pod \
+                -l app.kubernetes.io/name=keycloak \
+                -n keycloak \
+                --timeout=300s || warn "Keycloak pod readiness check timed out, continuing anyway..."
+
+            # Wait for Keycloak service to respond to health check (timeout: 60s)
+            log "Waiting for Keycloak service to respond..."
+            KEYCLOAK_URL="https://keycloak.${EXTERNAL_IP}.nip.io/realms/master"
+            TIMEOUT=60
+            INTERVAL=5
+            ELAPSED=0
+            while true; do
+                if curl -k --max-time 5 -s -o /dev/null -w "%{http_code}" "$KEYCLOAK_URL" | grep -q "^200$"; then
+                    log "Keycloak service is responding."
+                    break
+                fi
+                if (( ELAPSED >= TIMEOUT )); then
+                    warn "Keycloak service did not respond within ${TIMEOUT}s, continuing anyway..."
+                    break
+                fi
+                sleep $INTERVAL
+                ELAPSED=$((ELAPSED + INTERVAL))
+            done
+        fi
+
+        # Run full deployment (will be no-op for Keycloak on fresh, updates on existing)
+        log "Running full Terraform deployment..."
         ./run.sh --auto-approve
+
         cd "${SCRIPT_DIR}"
         log "Terraform deployment completed"
     else
@@ -141,9 +214,10 @@ show_status() {
         echo ""
         
         echo "=== Access Information ==="
-        echo "Keycloak should be accessible at: http://keycloak.${EXTERNAL_IP}.nip.io"
-        echo "MinIO Console should be accessible at: http://minio-console.${EXTERNAL_IP}.nip.io"
-        echo "MinIO API should be accessible at: http://minio-api.${EXTERNAL_IP}.nip.io"
+        echo "Portal should be accessible at: https://${EXTERNAL_IP}.nip.io"
+        echo "Keycloak should be accessible at: https://keycloak.${EXTERNAL_IP}.nip.io"
+        echo "MinIO Console should be accessible at: https://minio-console.${EXTERNAL_IP}.nip.io"
+        echo "MinIO API should be accessible at: https://minio-api.${EXTERNAL_IP}.nip.io"
         echo "Platform external IP: ${EXTERNAL_IP}"
         echo "(Once all services are deployed and running)"
     else
