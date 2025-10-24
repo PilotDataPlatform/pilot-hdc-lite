@@ -32,7 +32,26 @@ A lightweight, single-VM lite version of the [Pilot-HDC](https://hdc.humanbrainp
    EXTERNAL_IP=192.168.1.100  # Your VM IP
    RSA_PUBLIC_KEY="<your-public-key>"
    DEMO=true  # Required: Set to 'true' to accept self-signed certificates
+              # ⚠️ SECURITY: Skips TLS verification during Terraform bootstrap
+              # Only use on isolated/trusted networks (dev/demo environments)
+              # For production: Configure proper CA-signed certificates and set DEMO=false
+
+   # Keycloak admin console credentials
+   KEYCLOAK_ADMIN_USERNAME="myadminuser"  # **CHANGE THIS**
+   KEYCLOAK_ADMIN_PASSWORD="SecurePass123"  # **REQUIRED**
+
+   # Portal login credentials
+   KEYCLOAK_ADMIN_TEST_USERNAME="testadmin"  # **CHANGE THIS**
+   KEYCLOAK_ADMIN_TEST_PASSWORD="PortalPass456"  # **REQUIRED**
    ```
+
+   **⚠️ Security Requirements**:
+   - **Keycloak Admin Console** (`https://keycloak.<EXTERNAL_IP>.nip.io`):
+     - Username: `KEYCLOAK_ADMIN_USERNAME` (do NOT use 'admin' or 'user')
+     - Password: `KEYCLOAK_ADMIN_PASSWORD` (required - deployment fails if not set)
+   - **Portal Login** (`https://<EXTERNAL_IP>.nip.io`):
+     - Username: `KEYCLOAK_ADMIN_TEST_USERNAME` (default: 'testadmin')
+     - Password: `KEYCLOAK_ADMIN_TEST_PASSWORD` (required - deployment fails if not set)
 
    **Note**: This platform uses self-signed certificates from cert-manager. You must set `DEMO=true` to allow Terraform to deploy. See [Demo Mode Configuration](#demo-mode-configuration) below.
 

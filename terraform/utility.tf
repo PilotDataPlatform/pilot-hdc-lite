@@ -514,3 +514,37 @@ resource "helm_release" "bff" {
     helm_release.dataops
   ]
 }
+
+# Portal service deployment
+resource "helm_release" "portal" {
+
+  name = "portal-service"
+
+  repository       = "https://pilotdataplatform.github.io/helm-charts/"
+  chart            = "portal"
+  version          = var.portal_chart_version
+  namespace        = kubernetes_namespace.utility.metadata[0].name
+  create_namespace = false
+  timeout          = "300"
+  atomic           = true
+  cleanup_on_fail  = true
+
+  values = [templatefile("../helm_charts/pilot-hdc/portal/values.yaml", {
+    EXTERNAL_IP = var.external_ip
+  })]
+
+  set {
+    name  = "image.tag"
+    value = var.portal_app_version
+  }
+
+  set {
+    name  = "imagePullSecrets[0].name"
+    value = kubernetes_secret.docker_registry.metadata[0].name
+  }
+
+  depends_on = [
+    helm_release.bff,
+    helm_release.keycloak
+  ]
+}

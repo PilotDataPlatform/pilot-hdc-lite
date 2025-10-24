@@ -8,7 +8,7 @@ deploymentAnnotations:
 
 image:
   repository: docker-registry.ebrains.eu/hdc-services-image/project
-  tag: 251
+  # tag: set by Terraform via var.project_app_version
   pullPolicy: IfNotPresent
 
 fullnameOverride: project

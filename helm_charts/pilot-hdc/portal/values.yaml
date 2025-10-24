@@ -1,0 +1,105 @@
+image:
+  repository: docker-registry.ebrains.eu/hdc-services-image/portal
+  # tag: set by Terraform via var.portal_app_version
+  pullPolicy: IfNotPresent
+
+fullnameOverride: portal
+
+container:
+  port: 80
+
+service:
+  type: ClusterIP
+  port: 3000
+  targetPort: 80
+
+# Single replica for alpha (vs 3 in production)
+replicaCount: 1
+
+# Minimal resources for 16GB RAM constraint
+resources:
+  requests:
+    memory: "50Mi"
+    cpu: "10m"
+  limits:
+    memory: "100Mi"
+    cpu: "100m"
+
+appConfig:
+  env: "staging"
+
+  # Basic configuration
+  REACT_APP_PORTAL_PATH: ""
+  REACT_APP_BRANDING_PATH: "/login"
+  REACT_APP_SOCKET_PROTOCOL: "wss"
+  REACT_APP_PLATFORM: "Pilot HDC Lite"
+
+  # Support contact
+  REACT_APP_SUPPORT_EMAIL: "support@pilot-hdc-lite.local"
+  REACT_APP_ORGANIZATION_PORTAL_DOMAIN: "pilot-hdc-lite.local"
+
+  # Domain and auth - will be injected via templatefile
+  REACT_APP_DOMAIN: "${EXTERNAL_IP}.nip.io"
+  REACT_APP_DEFAULT_AUTH_URL: "https://keycloak.${EXTERNAL_IP}.nip.io"
+  REACT_APP_KEYCLOAK_REALM: "hdc"
+
+  # BFF API endpoints - will be injected via templatefile
+  REACT_APP_API_PATH: "https://api.${EXTERNAL_IP}.nip.io"
+
+  # Download paths (relative to BFF)
+  REACT_APP_DOWNLOAD_URL_V2: "/download/core/v2/dataset/download"
+  REACT_APP_DOWNLOAD_URL_V1: "/download/core/v1/download"
+  REACT_APP_PROXY_ROUTE: "/pilot/api"
+
+  # Alpha simplifications - arranger/search not available
+  REACT_APP_ARRANGER_API: ""
+  REACT_APP_ARRANGER_GRAPHQLFIELD: ""
+  REACT_APP_ARRANGER_PROJECTID: ""
+
+  # Self-registration disabled for alpha
+  REACT_APP_ENABLE_SELF_REGISTRATION: "false"
+
+  # No superset in alpha
+  REACT_APP_SUPERSET_SUBDOMAIN: "false"
+  REACT_APP_SUPERSET_SUBDOMAIN_BASE: ""
+
+  # No remote branding module
+  REACT_APP_REMOTE_MODULE_BRANDING_URL: ""
+
+  # Placeholder for public docs (not configured in alpha)
+  REACT_APP_DOC_BUCKET: ""
+
+readinessProbe:
+  tcpSocket:
+    port: 80
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+livenessProbe:
+  httpGet:
+    path: /
+    port: 80
+    scheme: HTTP
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 5
+
+ingress:
+  enabled: true
+  annotations:
+    cert-manager.io/cluster-issuer: self-signed
+    kubernetes.io/ingress.class: traefik
+  tls: true
+  hostname: "${EXTERNAL_IP}.nip.io"
+  path: /
+  pathType: Prefix
+
+# No pod anti-affinity for single-node k3s
+affinity: {}
+
+# Simple rolling update for alpha
+updateStrategy:
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0
+  type: RollingUpdate

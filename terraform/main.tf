@@ -44,7 +44,7 @@ provider "kubectl" {
 provider "keycloak" {
   client_id                = "admin-cli"
   username                 = var.keycloak_admin_username
-  password                 = data.kubernetes_secret.keycloak_admin.data["admin-password"]
+  password                 = var.keycloak_admin_password
   url                      = var.keycloak_url != "" ? var.keycloak_url : "https://keycloak.${var.external_ip}.nip.io"
   tls_insecure_skip_verify = var.demo_mode  # Only skip TLS verification in demo mode
 }

@@ -1,18 +1,10 @@
 # Keycloak Client Configuration for Auth Service
 # Uses Terraform Keycloak provider to manage OIDC client declaratively
-
-# Read Keycloak admin credentials from the Keycloak Helm release
-data "kubernetes_secret" "keycloak_admin" {
-  metadata {
-    name      = "keycloak"
-    namespace = "keycloak"
-  }
-  depends_on = [helm_release.keycloak]
-}
+# Note: Admin credentials are provided via variables (keycloak_admin_username/password)
 
 # Create OIDC client for pilot-hdc-lite auth service
 resource "keycloak_openid_client" "pilot_hdc_lite" {
-  realm_id  = "master"  # Using master realm for alpha
+  realm_id  = keycloak_realm.hdc.id
   client_id = "pilot-hdc-lite"
 
   name    = "Pilot HDC Lite Auth Service"
@@ -44,7 +36,7 @@ resource "keycloak_openid_client" "pilot_hdc_lite" {
 
 # Configure default scopes for the client
 resource "keycloak_openid_client_default_scopes" "pilot_hdc_lite" {
-  realm_id  = "master"
+  realm_id  = keycloak_realm.hdc.id
   client_id = keycloak_openid_client.pilot_hdc_lite.id
 
   default_scopes = [

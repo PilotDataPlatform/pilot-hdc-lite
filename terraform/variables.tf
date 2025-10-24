@@ -146,9 +146,25 @@ variable "bff_app_version" {
   default = "2.2.68"
 }
 
+variable "portal_chart_version" {
+  type    = string
+  default = "2.1.2"
+}
+
+variable "portal_app_version" {
+  type    = string
+  default = "1.5.3-hdc-lite"
+}
+
 variable "keycloak_admin_username" {
   type        = string
   description = "Keycloak admin username (must be explicitly set for security)"
+  sensitive   = true
+}
+
+variable "keycloak_admin_password" {
+  type        = string
+  description = "Keycloak admin password (must be explicitly set for security - no default)"
   sensitive   = true
 }
 
@@ -162,4 +178,23 @@ variable "demo_mode" {
   type        = bool
   description = "Enable demo mode: Terraform provider accepts self-signed certificates. Set to false to require CA-signed certificates."
   default     = false
+}
+
+variable "keycloak_realm_name" {
+  type        = string
+  description = "Name of the Keycloak realm for pilot-hdc-lite"
+  default     = "hdc"
+}
+
+variable "keycloak_admin_test_username" {
+  type        = string
+  description = "Username for portal test admin user (HDC realm)"
+  default     = "testadmin"
+  sensitive   = false
+}
+
+variable "keycloak_admin_test_password" {
+  type        = string
+  description = "Password for portal test admin user (HDC realm)"
+  sensitive   = true
 }

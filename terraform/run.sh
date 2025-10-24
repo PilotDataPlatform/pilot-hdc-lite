@@ -21,6 +21,9 @@ export TF_VAR_docker_registry_external_password="${DOCKER_REGISTRY_EXTERNAL_PASS
 export TF_VAR_rsa_public_key="${RSA_PUBLIC_KEY:-}"
 export TF_VAR_demo_mode="${DEMO:-false}"
 export TF_VAR_keycloak_admin_username="${KEYCLOAK_ADMIN_USERNAME}"
+export TF_VAR_keycloak_admin_password="${KEYCLOAK_ADMIN_PASSWORD}"
+export TF_VAR_keycloak_admin_test_username="${KEYCLOAK_ADMIN_TEST_USERNAME:-testadmin}"
+export TF_VAR_keycloak_admin_test_password="${KEYCLOAK_ADMIN_TEST_PASSWORD}"
 
 # Check for auto-approve flag
 AUTO_APPROVE=false
@@ -38,8 +41,8 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Ensure state directory exists
-mkdir -p /home/ubuntu/.terraform-state
+# Ensure state directory exists with restricted permissions
+install -d -m 700 /home/ubuntu/.terraform-state
 
 terraform init
 terraform plan -out deploy.tfplan

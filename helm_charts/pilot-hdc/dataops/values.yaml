@@ -1,6 +1,6 @@
 image:
   repository: docker-registry.ebrains.eu/hdc-services-image/dataops
-  tag: 274
+  # tag: set by Terraform via var.dataops_app_version
   pullPolicy: IfNotPresent
 
 deploymentAnnotations:

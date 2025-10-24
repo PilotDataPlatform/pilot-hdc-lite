@@ -1,6 +1,6 @@
 image:
   repository: docker-registry.ebrains.eu/hdc-services-image/bff-web
-  tag: 2.2.68
+  # tag: set by Terraform via var.bff_app_version
   pullPolicy: IfNotPresent
   tagPrefix: "bff"
 
@@ -20,6 +20,7 @@ container:
 
 service:
   type: ClusterIP
+  port: 5060  # Main API port for ingress backend
   ports:
     - port: 5060
       targetPort:
@@ -38,7 +39,7 @@ extraEnv:
   CORE_ZONE_LABEL: "Core"
   GREENROOM_ZONE_LABEL: "Greenroom"
   PROJECT_NAME: "Pilot HDC Lite"
-  KEYCLOAK_REALM: "master"
+  KEYCLOAK_REALM: "hdc"
   AD_USER_GROUP: "users"
   AD_PROJECT_GROUP_PREFIX: "pilot-hdc"
   EMAIL_SUPPORT: "support@pilot-hdc-lite.local"
