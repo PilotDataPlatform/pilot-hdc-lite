@@ -159,7 +159,7 @@ run_terraform() {
             export TF_VAR_keycloak_admin_test_password="${KEYCLOAK_ADMIN_TEST_PASSWORD}"
 
             terraform init
-            terraform apply -auto-approve \
+            terraform apply -auto-approve -compact-warnings \
                 -target=kubernetes_namespace.keycloak \
                 -target=helm_release.keycloak_postgres \
                 -target=helm_release.keycloak
@@ -170,9 +170,24 @@ run_terraform() {
                 -n keycloak \
                 --timeout=300s || warn "Keycloak pod readiness check timed out, continuing anyway..."
 
-            # Brief additional wait for service initialization
-            log "Waiting for Keycloak service initialization..."
-            sleep 10
+            # Wait for Keycloak service to respond to health check (timeout: 60s)
+            log "Waiting for Keycloak service to respond..."
+            KEYCLOAK_URL="https://keycloak.${EXTERNAL_IP}.nip.io/realms/master"
+            TIMEOUT=60
+            INTERVAL=5
+            ELAPSED=0
+            while true; do
+                if curl -k --max-time 5 -s -o /dev/null -w "%{http_code}" "$KEYCLOAK_URL" | grep -q "^200$"; then
+                    log "Keycloak service is responding."
+                    break
+                fi
+                if (( ELAPSED >= TIMEOUT )); then
+                    warn "Keycloak service did not respond within ${TIMEOUT}s, continuing anyway..."
+                    break
+                fi
+                sleep $INTERVAL
+                ELAPSED=$((ELAPSED + INTERVAL))
+            done
         fi
 
         # Run full deployment (will be no-op for Keycloak on fresh, updates on existing)
