@@ -548,3 +548,78 @@ resource "helm_release" "portal" {
     helm_release.keycloak
   ]
 }
+
+# ==============================================================================
+# Kong API Gateway
+# ==============================================================================
+
+# Kong PostgreSQL password
+resource "random_password" "kong_postgres_password" {
+  length  = 32
+  special = true
+}
+
+# Kong admin token (stored in k8s secret for reference)
+# Alpha: Kong admin API does not require auth (in-cluster access only)
+# TODO: Enable admin token authentication for production deployment
+resource "random_password" "kong_admin_token" {
+  length  = 64
+  special = false  # alphanumeric only
+}
+
+# Store Kong admin token in k8s secret
+resource "kubernetes_secret" "kong_admin_token" {
+  metadata {
+    name      = "kong-admin-token"
+    namespace = kubernetes_namespace.utility.metadata[0].name
+  }
+
+  type = "Opaque"
+
+  data = {
+    "admin-token" = random_password.kong_admin_token.result
+  }
+
+  lifecycle {
+    ignore_changes = [data]
+  }
+
+  depends_on = [random_password.kong_admin_token]
+}
+
+# Kong API Gateway deployment
+resource "helm_release" "kong" {
+  name       = "kong"
+  repository = "https://charts.bitnami.com/bitnami"
+  chart      = "kong"
+  version    = var.kong_chart_version
+  namespace  = kubernetes_namespace.utility.metadata[0].name
+  timeout    = "300"
+  wait       = "false"  # Bitnami chart wait issue: https://github.com/hashicorp/terraform-provider-helm/issues/683
+
+  values = [templatefile("../helm_charts/kong/values.yaml", {
+    EXTERNAL_IP             = var.external_ip
+    KONG_IMAGE_TAG          = var.kong_image_tag
+    KONG_POSTGRES_IMAGE_TAG = var.kong_postgres_image_tag
+  })]
+
+  set_sensitive {
+    name  = "postgresql.auth.password"
+    value = random_password.kong_postgres_password.result
+  }
+
+  depends_on = [
+    kubernetes_namespace.utility,
+    kubernetes_secret.kong_admin_token
+  ]
+}
+
+# Data source to read Kong admin token for Terraform provider
+data "kubernetes_secret" "kong_admin_token" {
+  metadata {
+    name      = "kong-admin-token"
+    namespace = kubernetes_namespace.utility.metadata[0].name
+  }
+
+  depends_on = [kubernetes_secret.kong_admin_token]
+}

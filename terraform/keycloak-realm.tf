@@ -36,6 +36,18 @@ data "keycloak_role" "offline_access" {
   name     = "offline_access"
 }
 
+# Get built-in uma_authorization role
+data "keycloak_role" "uma_authorization" {
+  realm_id = keycloak_realm.hdc.id
+  name     = "uma_authorization"
+}
+
+# Get realm-management client for service account roles
+data "keycloak_openid_client" "realm_management" {
+  realm_id  = keycloak_realm.hdc.id
+  client_id = "realm-management"
+}
+
 # Platform admin role
 resource "keycloak_role" "platform_admin" {
   realm_id    = keycloak_realm.hdc.id
@@ -76,16 +88,16 @@ resource "keycloak_openid_client" "react_app" {
 
   # Valid redirect URIs - allow all paths on portal domain
   valid_redirect_uris = [
-    "https://${var.external_ip}.nip.io/*"
+    "https://${var.external_ip}/*"
   ]
 
   # Web origins for CORS
   web_origins = [
-    "https://${var.external_ip}.nip.io"
+    "https://${var.external_ip}"
   ]
 
   # Base URL
-  base_url = "https://${var.external_ip}.nip.io"
+  base_url = "https://${var.external_ip}"
 
   backchannel_logout_session_required = false
 }
@@ -198,4 +210,105 @@ resource "keycloak_user_roles" "admin_platform_admin" {
     keycloak_role.admin_role.id,
     data.keycloak_role.offline_access.id
   ]
+}
+
+# -----------------------------------------------------------------------------
+# Kong Client (CONFIDENTIAL client for API Gateway)
+# -----------------------------------------------------------------------------
+
+# Kong OIDC client - CONFIDENTIAL type (has client secret)
+# Used by Kong to introspect bearer tokens from portal requests
+resource "keycloak_openid_client" "kong" {
+  realm_id  = keycloak_realm.hdc.id
+  client_id = "kong"
+
+  name    = "Kong API Gateway"
+  enabled = true
+
+  # CONFIDENTIAL client - has client secret for server-to-server auth
+  access_type                  = "CONFIDENTIAL"
+  standard_flow_enabled        = true
+  direct_access_grants_enabled = true
+  service_accounts_enabled     = true
+
+  # Root URL for service account
+  root_url = "http://kong.utility:8000"
+
+  # Valid redirect URIs for Kong
+  valid_redirect_uris = [
+    "https://api.${var.external_ip}/*"
+  ]
+
+  # Web origins for CORS
+  web_origins = [
+    "https://api.${var.external_ip}"
+  ]
+}
+
+# Kong Protocol Mappers
+# These mappers allow Kong to introspect tokens issued to other clients (react-app)
+
+# MinIO audience mapper - allows Kong to validate tokens with aud: minio
+resource "keycloak_openid_audience_protocol_mapper" "kong_aud_mapper" {
+  realm_id  = keycloak_realm.hdc.id
+  client_id = keycloak_openid_client.kong.id
+  name      = "aud_mapper"
+
+  included_custom_audience = "minio"
+  add_to_id_token          = false
+}
+
+# MinIO policy mapper - maps user policy attribute to token
+resource "keycloak_openid_user_attribute_protocol_mapper" "kong_minio_policy" {
+  realm_id  = keycloak_realm.hdc.id
+  client_id = keycloak_openid_client.kong.id
+  name      = "minio_policy_mapper"
+
+  user_attribute   = "policy"
+  claim_name       = "policy"
+  claim_value_type = "String"
+}
+
+# User property mapper - maps username to sub claim
+resource "keycloak_openid_user_property_protocol_mapper" "kong_username_sub" {
+  realm_id  = keycloak_realm.hdc.id
+  client_id = keycloak_openid_client.kong.id
+  name      = "user-property-mapper"
+
+  user_property    = "username"
+  claim_name       = "sub"
+  claim_value_type = "String"
+}
+
+# Kong Service Account Roles
+# Grant Kong permission to introspect tokens from other clients
+
+# Realm role: offline_access
+resource "keycloak_openid_client_service_account_realm_role" "kong_offline_access" {
+  realm_id                = keycloak_realm.hdc.id
+  service_account_user_id = keycloak_openid_client.kong.service_account_user_id
+  role                    = data.keycloak_role.offline_access.name
+}
+
+# Realm role: uma_authorization
+resource "keycloak_openid_client_service_account_realm_role" "kong_uma_authorization" {
+  realm_id                = keycloak_realm.hdc.id
+  service_account_user_id = keycloak_openid_client.kong.service_account_user_id
+  role                    = data.keycloak_role.uma_authorization.name
+}
+
+# Client role: realm-management → manage-realm
+resource "keycloak_openid_client_service_account_role" "kong_manage_realm" {
+  realm_id                = keycloak_realm.hdc.id
+  service_account_user_id = keycloak_openid_client.kong.service_account_user_id
+  client_id               = data.keycloak_openid_client.realm_management.id
+  role                    = "manage-realm"
+}
+
+# Client role: realm-management → manage-users (CRITICAL for token introspection)
+resource "keycloak_openid_client_service_account_role" "kong_manage_users" {
+  realm_id                = keycloak_realm.hdc.id
+  service_account_user_id = keycloak_openid_client.kong.service_account_user_id
+  client_id               = data.keycloak_openid_client.realm_management.id
+  role                    = "manage-users"
 }
