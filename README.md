@@ -29,7 +29,7 @@ A lightweight, single-VM lite version of the [Pilot-HDC](https://hdc.humanbrainp
 
 2. **Create `.env` file**:
    ```bash
-   EXTERNAL_IP=192.168.1.100  # Your VM IP
+   EXTERNAL_IP=demo.hdclite.ebrains.eu  # Your domain (or IP.nip.io for IP-based)
    RSA_PUBLIC_KEY="<your-public-key>"
    DEMO=true  # Required: Set to 'true' to accept self-signed certificates
               # ⚠️ SECURITY: Skips TLS verification during Terraform bootstrap
@@ -46,10 +46,10 @@ A lightweight, single-VM lite version of the [Pilot-HDC](https://hdc.humanbrainp
    ```
 
    **⚠️ Security Requirements**:
-   - **Keycloak Admin Console** (`https://keycloak.<EXTERNAL_IP>.nip.io`):
+   - **Keycloak Admin Console** (`https://keycloak.<EXTERNAL_IP>`):
      - Username: `KEYCLOAK_ADMIN_USERNAME` (do NOT use 'admin' or 'user')
      - Password: `KEYCLOAK_ADMIN_PASSWORD` (required - deployment fails if not set)
-   - **Portal Login** (`https://<EXTERNAL_IP>.nip.io`):
+   - **Portal Login** (`https://<EXTERNAL_IP>`):
      - Username: `KEYCLOAK_ADMIN_TEST_USERNAME` (default: 'testadmin')
      - Password: `KEYCLOAK_ADMIN_TEST_PASSWORD` (required - deployment fails if not set)
 
@@ -61,8 +61,10 @@ A lightweight, single-VM lite version of the [Pilot-HDC](https://hdc.humanbrainp
    ```
 
 4. **Access**:
-   - Keycloak: `https://keycloak.<EXTERNAL_IP>.nip.io`
-   - MinIO Console: `https://minio-console.<EXTERNAL_IP>.nip.io`
+   - Portal: `https://<EXTERNAL_IP>`
+   - Keycloak: `https://keycloak.<EXTERNAL_IP>`
+   - API Gateway: `https://api.<EXTERNAL_IP>`
+   - MinIO Console: `https://minio-console.<EXTERNAL_IP>`
 
 ## Security Considerations
 

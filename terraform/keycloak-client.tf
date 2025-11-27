@@ -18,18 +18,18 @@ resource "keycloak_openid_client" "pilot_hdc_lite" {
 
   # Valid redirect URIs - HTTPS only
   valid_redirect_uris = [
-    "https://${var.external_ip}.nip.io/*"
+    "https://${var.external_ip}/*"
   ]
 
   # Web origins - HTTPS only
   web_origins = [
-    "https://${var.external_ip}.nip.io"
+    "https://${var.external_ip}"
   ]
 
   # Service URLs - HTTPS only
-  root_url  = "https://${var.external_ip}.nip.io"
-  admin_url = "https://${var.external_ip}.nip.io"
-  base_url  = "https://${var.external_ip}.nip.io"
+  root_url  = "https://${var.external_ip}"
+  admin_url = "https://${var.external_ip}"
+  base_url  = "https://${var.external_ip}"
 
   backchannel_logout_session_required = false
 }
