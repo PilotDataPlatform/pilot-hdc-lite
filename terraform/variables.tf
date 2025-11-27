@@ -153,7 +153,25 @@ variable "portal_chart_version" {
 
 variable "portal_app_version" {
   type    = string
-  default = "1.5.3-hdc-lite"
+  default = "1.5.6-hdc-lite"
+}
+
+variable "kong_chart_version" {
+  type        = string
+  default     = "9.1.8"
+  description = "Bitnami Kong Helm chart version"
+}
+
+variable "kong_image_tag" {
+  type        = string
+  default     = "latest"
+  description = "Kong with OIDC image tag"
+}
+
+variable "kong_postgres_image_tag" {
+  type        = string
+  default     = "11.16.0-debian-11-r5"
+  description = "PostgreSQL image tag for Kong database"
 }
 
 variable "keycloak_admin_username" {

@@ -17,11 +17,10 @@ resource "helm_release" "keycloak" {
 
   values = [file("../helm_charts/keycloak/values.yaml")]
 
-  # Override values with auto-detected IP
-  # Use nip.io DNS service - keycloak.IP.nip.io automatically resolves to IP
+  # Override values with domain
   set {
     name  = "ingress.hostname"
-    value = "keycloak.${local.node_ip}.nip.io"
+    value = "keycloak.${local.node_ip}"
   }
 
   # Set admin credentials from variables (required for security)

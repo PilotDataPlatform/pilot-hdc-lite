@@ -29,19 +29,19 @@ resource "kubernetes_ingress_v1" "vault" {
     namespace = kubernetes_namespace.vault[0].metadata[0].name
     annotations = {
       "kubernetes.io/ingress.class"              = "traefik"
-      "cert-manager.io/cluster-issuer"           = "selfsigned-issuer"
+      "cert-manager.io/cluster-issuer"           = "letsencrypt-prod"
       "traefik.ingress.kubernetes.io/router.tls" = "true"
     }
   }
 
   spec {
     tls {
-      hosts       = ["vault.${local.node_ip}.nip.io"]
+      hosts       = ["vault.${local.node_ip}"]
       secret_name = "vault-tls"
     }
 
     rule {
-      host = "vault.${local.node_ip}.nip.io"
+      host = "vault.${local.node_ip}"
       http {
         path {
           path      = "/"

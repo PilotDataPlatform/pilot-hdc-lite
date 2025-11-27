@@ -35,7 +35,7 @@ appConfig:
   env: "staging"
 
 extraEnv:
-  SITE_DOMAIN: "https://${EXTERNAL_IP}.nip.io"
+  SITE_DOMAIN: "https://${EXTERNAL_IP}"
   CORE_ZONE_LABEL: "Core"
   GREENROOM_ZONE_LABEL: "Greenroom"
   PROJECT_NAME: "Pilot HDC Lite"
@@ -52,7 +52,7 @@ extraEnv:
   LDAP_USER_OBJECTCLASS: "cn"
   LDAP_SET_GIDNUMBER: true
   S3_GATEWAY: "True"
-  INVITATION_URL_LOGIN: "https://${EXTERNAL_IP}.nip.io/login/"
+  INVITATION_URL_LOGIN: "https://${EXTERNAL_IP}/login/"
   # Alpha - services that ARE deployed
   AUTH_SERVICE: "http://auth.utility:5061"
   METADATA_SERVICE: "http://metadata.utility:5066"

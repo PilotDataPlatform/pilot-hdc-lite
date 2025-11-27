@@ -17,16 +17,15 @@ resource "helm_release" "minio" {
 
   values = [file("../helm_charts/minio/values.yaml")]
 
-  # Override values with auto-detected IP
-  # Use nip.io DNS service for dynamic hostname resolution
+  # Override values with domain
   set {
     name  = "ingress.hostname"
-    value = "minio-console.${local.node_ip}.nip.io"
+    value = "minio-console.${local.node_ip}"
   }
 
   set {
     name  = "apiIngress.hostname"
-    value = "minio-api.${local.node_ip}.nip.io"
+    value = "minio-api.${local.node_ip}"
   }
 
   depends_on = [

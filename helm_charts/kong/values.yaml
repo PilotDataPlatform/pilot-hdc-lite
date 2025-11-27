@@ -1,0 +1,66 @@
+# Kong API Gateway Configuration for Pilot HDC Lite Alpha
+# Based on production config: cscs-infra/Intern-helms/kong/values.yaml
+# Chart version: 9.1.8 (Bitnami)
+
+image:
+  registry: ghcr.io
+  repository: pilotdataplatform/kong-with-oidc
+  tag: "${KONG_IMAGE_TAG}"
+  pullPolicy: IfNotPresent
+  debug: false
+
+database: postgresql
+replicaCount: 1
+
+ingress:
+  enabled: true
+  hostname: "api.${EXTERNAL_IP}"
+  path: /
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    kubernetes.io/ingress.class: traefik
+  tls: true
+
+ingressController:
+  enabled: false
+
+postgresql:
+  enabled: true
+  image:
+    registry: docker-registry.ebrains.eu
+    repository: hdc-services-external/bitnami/postgresql
+    tag: "${KONG_POSTGRES_IMAGE_TAG}"
+    pullSecrets:
+      - docker-registry-external-secret
+  auth:
+    username: kong
+    database: kong
+    # password set via Terraform set_sensitive
+  architecture: standalone
+  primary:
+    persistence:
+      enabled: true
+      storageClass: local-path
+      size: 5Gi  # Alpha: smaller than production (10Gi)
+
+kong:
+  extraEnvVars:
+  - name: KONG_LOG_LEVEL
+    value: "info"  # Alpha: info level (production uses debug)
+  - name: KONG_PLUGINS
+    value: "bundled,oidc"
+  - name: KONG_ADMIN_ACCESS_LOG
+    value: "/dev/stdout"
+  - name: KONG_ADMIN_ERROR_LOG
+    value: "/dev/stderr"
+
+service:
+  exposeAdmin: true  # Exposes admin API as ClusterIP service (in-cluster access only)
+
+resources:
+  requests:
+    memory: "256Mi"
+    cpu: "100m"
+  limits:
+    memory: "512Mi"
+    cpu: "500m"

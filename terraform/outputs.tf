@@ -4,9 +4,9 @@ output "cluster_info" {
     node_ip      = local.node_ip
     nodeport     = var.nodeport
     platform_url = "https://${local.node_ip}:${var.nodeport}"
-    keycloak_url = "https://keycloak.${local.node_ip}.nip.io:${var.nodeport}"
-    minio_url    = "https://minio.${local.node_ip}.nip.io:${var.nodeport}"
-    vault_url    = var.deploy_vault ? (var.debug_mode ? "https://vault.${local.node_ip}.nip.io:${var.nodeport}" : "Internal only - use kubectl port-forward") : "Vault not deployed"
+    keycloak_url = "https://keycloak.${local.node_ip}:${var.nodeport}"
+    minio_url    = "https://minio-console.${local.node_ip}:${var.nodeport}"
+    vault_url    = var.deploy_vault ? (var.debug_mode ? "https://vault.${local.node_ip}:${var.nodeport}" : "Internal only - use kubectl port-forward") : "Vault not deployed"
   }
 }
 
@@ -14,11 +14,11 @@ output "service_access" {
   description = "Service access information"
   value = {
     urls = merge({
-      keycloak      = "https://keycloak.${local.node_ip}.nip.io"
-      minio_console = "https://minio-console.${local.node_ip}.nip.io"
-      minio_api     = "https://minio-api.${local.node_ip}.nip.io"
+      keycloak      = "https://keycloak.${local.node_ip}"
+      minio_console = "https://minio-console.${local.node_ip}"
+      minio_api     = "https://minio-api.${local.node_ip}"
       }, var.deploy_vault ? (var.debug_mode ? {
-        vault = "https://vault.${local.node_ip}.nip.io"
+        vault = "https://vault.${local.node_ip}"
         } : {
         vault_access = "kubectl port-forward svc/vault -n vault 8200:8200"
       }) : {
