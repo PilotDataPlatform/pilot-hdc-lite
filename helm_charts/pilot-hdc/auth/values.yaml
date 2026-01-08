@@ -36,7 +36,7 @@ extraEnv:
   LDAP_ADMIN_DN: ""
   LDAP_ADMIN_SECRET: ""
   # Keycloak configuration - uses HTTPS external ingress
-  KEYCLOAK_SERVER_URL: "https://keycloak.${EXTERNAL_IP}"
+  KEYCLOAK_SERVER_URL: "https://keycloak.${EXTERNAL_IP}/"
   KEYCLOAK_CLIENT_ID: "pilot-hdc-lite"
   KEYCLOAK_REALM: "hdc"
   KEYCLOAK_ID: "pilot-hdc-lite"
