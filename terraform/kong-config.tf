@@ -54,6 +54,20 @@ resource "kong_service" "pilot_user_auth_refresh" {
   depends_on = [helm_release.kong, helm_release.auth]
 }
 
+resource "kong_service" "dataops_task_stream" {
+  name            = "dataops-task-stream"
+  protocol        = "http"
+  host            = "dataops.utility"
+  port            = 5063
+  path            = "/v1/task-stream"
+  retries         = 5
+  connect_timeout = 60000
+  write_timeout   = 60000
+  read_timeout    = 60000
+
+  depends_on = [helm_release.kong, helm_release.dataops]
+}
+
 # ==============================================================================
 # Kong Routes - URL Path Mappings
 # ==============================================================================
@@ -95,6 +109,19 @@ resource "kong_route" "pilot_user_auth_refresh" {
   preserve_host              = false
   regex_priority             = 0
   service_id                 = kong_service.pilot_user_auth_refresh.id
+}
+
+resource "kong_route" "pilot_task_stream" {
+  name                       = "dataops-task-stream"
+  protocols                  = ["http", "https"]
+  methods                    = ["GET"]
+  paths                      = ["/pilot/task-stream"]
+  path_handling              = "v1"
+  https_redirect_status_code = 426
+  strip_path                 = true
+  preserve_host              = false
+  regex_priority             = 0
+  service_id                 = kong_service.dataops_task_stream.id
 }
 
 # ==============================================================================
