@@ -430,7 +430,7 @@ resource "kubernetes_secret" "auth_utility_secret" {
 
   data = {
     "RDS_PWD"                = random_password.auth_db_password.result
-    "KEYCLOAK_CLIENT_SECRET" = keycloak_openid_client.pilot_hdc_lite.client_secret
+    "KEYCLOAK_CLIENT_SECRET" = keycloak_openid_client.kong.client_secret
   }
 
   lifecycle {
@@ -439,7 +439,7 @@ resource "kubernetes_secret" "auth_utility_secret" {
 
   depends_on = [
     random_password.auth_db_password,
-    keycloak_openid_client.pilot_hdc_lite
+    keycloak_openid_client.kong
   ]
 }
 

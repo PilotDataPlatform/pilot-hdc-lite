@@ -47,14 +47,3 @@ resource "keycloak_openid_client_default_scopes" "pilot_hdc_lite" {
     "openid"
   ]
 }
-
-# Output the client secret for use in auth service configuration
-# This will be consumed by the auth-utility-secret
-output "keycloak_client_secret" {
-  value     = keycloak_openid_client.pilot_hdc_lite.client_secret
-  sensitive = true
-}
-
-output "keycloak_client_id" {
-  value = keycloak_openid_client.pilot_hdc_lite.client_id
-}
