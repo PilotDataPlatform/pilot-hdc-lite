@@ -29,7 +29,7 @@ ingress:
   pathType: Prefix
   servicePort: minio-console
   annotations:
-    cert-manager.io/cluster-issuer: selfsigned-issuer
+    cert-manager.io/cluster-issuer: letsencrypt-prod
     kubernetes.io/ingress.class: traefik
   tls: true
 
@@ -42,6 +42,6 @@ apiIngress:
   pathType: Prefix
   servicePort: 9000
   annotations:
-    cert-manager.io/cluster-issuer: selfsigned-issuer
+    cert-manager.io/cluster-issuer: letsencrypt-prod
     kubernetes.io/ingress.class: traefik
   tls: true

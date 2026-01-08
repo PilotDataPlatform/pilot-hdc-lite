@@ -25,16 +25,17 @@ A lightweight, single-VM lite version of the [Pilot-HDC](https://hdc.humanbrainp
 1. **Prerequisites**:
    - Ubuntu/Debian-based VM with sudo access
    - 16GB+ RAM, 4-6 vCPU, 100GB disk
+   - **Public domain** with wildcard DNS pointing to VM (e.g., `*.demo.hdclite.ebrains.eu`)
+   - Ports 80/443 accessible from internet (Let's Encrypt HTTP-01 validation)
    - Network connectivity for initial image pulls
 
 2. **Create `.env` file**:
    ```bash
-   EXTERNAL_IP=192.168.1.100  # Your VM IP
+   EXTERNAL_IP=demo.hdclite.ebrains.eu  # Public domain with wildcard DNS (*.domain → VM IP)
    RSA_PUBLIC_KEY="<your-public-key>"
-   DEMO=true  # Required: Set to 'true' to accept self-signed certificates
-              # ⚠️ SECURITY: Skips TLS verification during Terraform bootstrap
-              # Only use on isolated/trusted networks (dev/demo environments)
-              # For production: Configure proper CA-signed certificates and set DEMO=false
+   DEMO=true  # Skips Terraform provider TLS verification during bootstrap
+              # Required while Let's Encrypt certs are being issued
+              # Safe: Only affects Terraform ↔ Keycloak API calls, not user traffic
 
    # Keycloak admin console credentials
    KEYCLOAK_ADMIN_USERNAME="myadminuser"  # **CHANGE THIS**
@@ -46,14 +47,14 @@ A lightweight, single-VM lite version of the [Pilot-HDC](https://hdc.humanbrainp
    ```
 
    **⚠️ Security Requirements**:
-   - **Keycloak Admin Console** (`https://keycloak.<EXTERNAL_IP>.nip.io`):
+   - **Keycloak Admin Console** (`https://keycloak.<EXTERNAL_IP>`):
      - Username: `KEYCLOAK_ADMIN_USERNAME` (do NOT use 'admin' or 'user')
      - Password: `KEYCLOAK_ADMIN_PASSWORD` (required - deployment fails if not set)
-   - **Portal Login** (`https://<EXTERNAL_IP>.nip.io`):
+   - **Portal Login** (`https://<EXTERNAL_IP>`):
      - Username: `KEYCLOAK_ADMIN_TEST_USERNAME` (default: 'testadmin')
      - Password: `KEYCLOAK_ADMIN_TEST_PASSWORD` (required - deployment fails if not set)
 
-   **Note**: This platform uses self-signed certificates from cert-manager. You must set `DEMO=true` to allow Terraform to deploy. See [Demo Mode Configuration](#demo-mode-configuration) below.
+   **Note**: TLS certificates are issued automatically by Let's Encrypt. Set `DEMO=true` during initial deployment (Terraform needs to provision Keycloak before certs are ready).
 
 3. **Deploy**:
    ```bash
@@ -61,8 +62,10 @@ A lightweight, single-VM lite version of the [Pilot-HDC](https://hdc.humanbrainp
    ```
 
 4. **Access**:
-   - Keycloak: `https://keycloak.<EXTERNAL_IP>.nip.io`
-   - MinIO Console: `https://minio-console.<EXTERNAL_IP>.nip.io`
+   - Portal: `https://<EXTERNAL_IP>`
+   - Keycloak: `https://keycloak.<EXTERNAL_IP>`
+   - API Gateway: `https://api.<EXTERNAL_IP>`
+   - MinIO Console: `https://minio-console.<EXTERNAL_IP>`
 
 ## Security Considerations
 
@@ -72,25 +75,23 @@ This project uses a `DEMO` environment variable to control Terraform provider be
 
 #### What DEMO Mode Controls
 
-**DEMO=false (Default - Secure by Default)**
-- Terraform provider requires CA-signed certificates
-- Use this when you have proper PKI infrastructure
-- Deployment will fail with self-signed certificates
-- **This is the secure default** - forces explicit security decisions
+**DEMO=false (Default - Strict TLS)**
+- Terraform provider requires valid TLS certificates
+- Use after initial deployment when Let's Encrypt certs are active
+- Recommended for re-running Terraform on existing deployments
 
-**DEMO=true (Development with Self-Signed Certificates)**
-- Terraform provider accepts self-signed certificates from cert-manager
-- **Required for this platform** since it uses cert-manager self-signed certs
-- Enables quick setup without needing proper PKI infrastructure
-- Explicit opt-in for relaxed TLS verification during deployment
-- **NOTE**: User authentication flows always use HTTPS regardless of this setting
+**DEMO=true (Initial Deployment)**
+- Terraform provider skips TLS verification for Keycloak API calls
+- **Required during initial deployment** before Let's Encrypt issues certificates
+- Only affects Terraform ↔ Keycloak provisioning communication
+- **NOTE**: User traffic always uses HTTPS with valid Let's Encrypt certificates
 
 #### ✅ What's Always Secured (Regardless of DEMO Mode)
 
-- **HTTPS Everywhere**: All user-facing traffic uses HTTPS via cert-manager
+- **HTTPS Everywhere**: All user-facing traffic uses HTTPS with Let's Encrypt certificates
 - **Authentication Security**: OAuth2/OIDC flows always use HTTPS endpoints only
 - **No HTTP Fallbacks**: HTTP redirects and origins are disabled for auth flows
-- **Self-signed Certificates**: Managed by cert-manager ClusterIssuer
+- **Automatic Certificate Renewal**: Let's Encrypt certs managed by cert-manager
 - **Secret Management**: Credentials stored in Kubernetes secrets
 - **Infrastructure as Code**: Declarative, auditable configuration
 
@@ -104,9 +105,9 @@ If deploying this platform for real workloads, implement these additional measur
    - Use network policies for pod-to-pod isolation
 
 2. **Certificate Management**
-   - Replace self-signed certs with CA-signed certificates
-   - Use Let's Encrypt for public endpoints
-   - Implement proper certificate rotation
+   - Let's Encrypt is used by default (automatic renewal via cert-manager)
+   - Requires public domain with HTTP-01 validation (ports 80/443)
+   - For private/offline installs: configure self-signed ClusterIssuer manually
 
 3. **Authentication & Authorization**
    - Configure LDAP/Active Directory integration

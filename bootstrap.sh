@@ -172,7 +172,7 @@ run_terraform() {
 
             # Wait for Keycloak service to respond to health check (timeout: 60s)
             log "Waiting for Keycloak service to respond..."
-            KEYCLOAK_URL="https://keycloak.${EXTERNAL_IP}.nip.io/realms/master"
+            KEYCLOAK_URL="https://keycloak.${EXTERNAL_IP}/realms/master"
             TIMEOUT=60
             INTERVAL=5
             ELAPSED=0
@@ -190,12 +190,54 @@ run_terraform() {
             done
         fi
 
+        # Start Kong admin API port-forward for Terraform provider
+        # Only start if Kong is deployed (check if namespace utility exists and has Kong service)
+        if kubectl get svc -n utility kong >/dev/null 2>&1; then
+            log "Starting Kong admin API port-forward for Terraform..."
+            kubectl port-forward -n utility svc/kong 8001:8001 >/dev/null 2>&1 &
+            KONG_PORT_FORWARD_PID=$!
+
+            # Cleanup function for port-forward
+            cleanup_kong_port_forward() {
+                if [ ! -z "$KONG_PORT_FORWARD_PID" ]; then
+                    log "Stopping Kong port-forward..."
+                    kill $KONG_PORT_FORWARD_PID 2>/dev/null || true
+                fi
+            }
+            trap cleanup_kong_port_forward EXIT
+
+            # Wait for port-forward to establish
+            sleep 3
+            log "Kong port-forward established at localhost:8001"
+        else
+            log "Kong service not found, skipping port-forward (will deploy Kong in this run)"
+        fi
+
         # Run full deployment (will be no-op for Keycloak on fresh, updates on existing)
         log "Running full Terraform deployment..."
         ./run.sh --auto-approve
 
         cd "${SCRIPT_DIR}"
         log "Terraform deployment completed"
+
+        # Retrieve Kong admin token from k8s secret
+        if command -v kubectl >/dev/null 2>&1; then
+            log "Retrieving Kong admin token from k8s secret..."
+            if kubectl get secret kong-admin-token -n utility >/dev/null 2>&1; then
+                KONG_ADMIN_TOKEN=$(kubectl get secret kong-admin-token -n utility -o jsonpath='{.data.admin-token}' 2>/dev/null | base64 -d)
+                if [ -n "${KONG_ADMIN_TOKEN}" ]; then
+                    echo "${KONG_ADMIN_TOKEN}" > /tmp/kong_admin_token
+                    chmod 600 /tmp/kong_admin_token
+                    log "Kong admin token saved to /tmp/kong_admin_token (for manual admin API access if needed)"
+                else
+                    warn "Kong admin token is empty, skipping save"
+                fi
+            else
+                warn "Kong admin token secret not found (Kong may not be deployed yet)"
+            fi
+        else
+            warn "kubectl not available - cannot retrieve Kong admin token"
+        fi
     else
         warn "Terraform not found. Skipping Terraform deployment."
         warn "Services will need to be deployed manually or install Terraform and run:"
@@ -214,11 +256,12 @@ show_status() {
         echo ""
         
         echo "=== Access Information ==="
-        echo "Portal should be accessible at: https://${EXTERNAL_IP}.nip.io"
-        echo "Keycloak should be accessible at: https://keycloak.${EXTERNAL_IP}.nip.io"
-        echo "MinIO Console should be accessible at: https://minio-console.${EXTERNAL_IP}.nip.io"
-        echo "MinIO API should be accessible at: https://minio-api.${EXTERNAL_IP}.nip.io"
-        echo "Platform external IP: ${EXTERNAL_IP}"
+        echo "Portal should be accessible at: https://${EXTERNAL_IP}"
+        echo "Keycloak should be accessible at: https://keycloak.${EXTERNAL_IP}"
+        echo "MinIO Console should be accessible at: https://minio-console.${EXTERNAL_IP}"
+        echo "MinIO API should be accessible at: https://minio-api.${EXTERNAL_IP}"
+        echo "API Gateway should be accessible at: https://api.${EXTERNAL_IP}"
+        echo "Platform domain: ${EXTERNAL_IP}"
         echo "(Once all services are deployed and running)"
     else
         echo "kubectl not available - check k3s installation"
