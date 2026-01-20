@@ -143,7 +143,7 @@ variable "bff_chart_version" {
 
 variable "bff_app_version" {
   type    = string
-  default = "2.2.68"
+  default = "2.2.73"
 }
 
 variable "portal_chart_version" {
