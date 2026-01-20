@@ -133,7 +133,7 @@ variable "auth_chart_version" {
 
 variable "auth_app_version" {
   type    = string
-  default = "2.2.31"
+  default = "2.2.32"
 }
 
 variable "bff_chart_version" {
