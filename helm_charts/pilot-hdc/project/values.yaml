@@ -26,7 +26,7 @@ extraEnv:
   S3_PORT: "9000"
   S3_HTTPS_ENABLED: "false"
   S3_GATEWAY_ENABLED: "false"
-  S3_BUCKET_ENCRYPTION_ENABLED: "true"
+  S3_BUCKET_ENCRYPTION_ENABLED: false
   S3_PREFIX_FOR_PROJECT_IMAGE_URLS: "http://minio.minio:9000/project-logos"
   METADATA_SERVICE: "http://metadata.utility:5066"
   AUTH_SERVICE: "http://auth.utility:5061"
