@@ -28,6 +28,7 @@ extraEnv:
   S3_GATEWAY_ENABLED: "false"
   S3_BUCKET_ENCRYPTION_ENABLED: false
   S3_PREFIX_FOR_PROJECT_IMAGE_URLS: "http://minio.minio:9000/project-logos"
+  SERVICE_CLIENT_TIMEOUT: 30
   METADATA_SERVICE: "http://metadata.utility:5066"
   AUTH_SERVICE: "http://auth.utility:5061"
   HOST: "0.0.0.0"

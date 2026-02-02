@@ -54,7 +54,7 @@ extraEnv:
   S3_GATEWAY: "True"
   INVITATION_URL_LOGIN: "https://${EXTERNAL_IP}/login/"
   # Alpha - services that ARE deployed
-  SERVICE_CLIENT_TIMEOUT: 30
+  SERVICE_CLIENT_TIMEOUT: 60
   AUTH_SERVICE: "http://auth.utility:5061"
   METADATA_SERVICE: "http://metadata.utility:5066"
   PROJECT_SERVICE: "http://project.utility:5064"
