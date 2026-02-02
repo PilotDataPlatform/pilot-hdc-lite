@@ -75,12 +75,12 @@ extraEnvYaml:
         key: KEYCLOAK_CLIENT_SECRET
 
 resources:
-  limits:
-    cpu: "100m"
-    memory: 100Mi
   requests:
-    cpu: "50m"
-    memory: 50Mi
+    cpu: "150m"
+    memory: 150Mi
+  limits:
+    cpu: "300m"
+    memory: 300Mi
 
 readinessProbe:
   failureThreshold: 3

@@ -50,12 +50,12 @@ extraEnvYaml:
         key: rsa-public-key
 
 resources:
-  limits:
-    cpu: "1"
-    memory: 500Mi
   requests:
-    cpu: "10m"
-    memory: 50Mi
+    cpu: "150m"
+    memory: 150Mi
+  limits:
+    cpu: "300m"
+    memory: 300Mi
 
 readinessProbe:
   failureThreshold: 3
