@@ -46,7 +46,7 @@ variable "project_chart_version" {
 
 variable "project_app_version" {
   type    = string
-  default = "2.3.7"
+  default = "2.3.9"
 }
 
 variable "dataops_chart_version" {
@@ -143,7 +143,7 @@ variable "bff_chart_version" {
 
 variable "bff_app_version" {
   type    = string
-  default = "2.2.73"
+  default = "2.2.74"
 }
 
 variable "portal_chart_version" {
@@ -153,7 +153,7 @@ variable "portal_chart_version" {
 
 variable "portal_app_version" {
   type    = string
-  default = "1.5.6-hdc-lite"
+  default = "1.6.1-hdc-lite"
 }
 
 variable "kong_chart_version" {
