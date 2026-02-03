@@ -24,7 +24,6 @@ extraEnv:
 
   namespace: "greenroom"
 
-  #ROOT_PATH: "/data/core-storage"
   ROOT_PATH: "/tmp"
   CORE_ZONE_LABEL: "Core"
   GREEN_ZONE_LABEL: "Greenroom"
@@ -87,10 +86,5 @@ livenessProbe:
   periodSeconds: 10
   successThreshold: 1
   timeoutSeconds: 3
-
-#volumes:
-#  name: nfsvol
-#  mountPath: /data/core-storage
-#  claimName: greenroom-storage
 
 replicaCount: 1
