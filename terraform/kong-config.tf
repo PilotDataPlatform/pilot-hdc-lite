@@ -68,6 +68,19 @@ resource "kong_service" "dataops_task_stream" {
   depends_on = [helm_release.kong, helm_release.dataops]
 }
 
+resource "kong_service" "hdc-upload-gr" {
+  name            = "hdc-upload-gr"
+  protocol        = "http"
+  host            = "upload.greenroom"
+  port            = 5079
+  retries         = 5
+  connect_timeout = 60000
+  write_timeout   = 60000
+  read_timeout    = 60000
+
+  depends_on = [helm_release.kong, helm_release.upload_greenroom]
+}
+
 # ==============================================================================
 # Kong Routes - URL Path Mappings
 # ==============================================================================
@@ -79,7 +92,7 @@ resource "kong_route" "pilot_portal_api" {
   paths                      = ["/pilot/portal"]
   path_handling              = "v1"
   https_redirect_status_code = 426
-  strip_path                 = true   # /pilot/portal/foo → /foo to backend
+  strip_path                 = true # /pilot/portal/foo → /foo to backend
   preserve_host              = false
   regex_priority             = 0
   service_id                 = kong_service.pilot_portal_api.id
@@ -124,6 +137,19 @@ resource "kong_route" "pilot_task_stream" {
   service_id                 = kong_service.dataops_task_stream.id
 }
 
+resource "kong_route" "hdc-upload-gr" {
+  name                       = "hdc-upload-gr"
+  protocols                  = ["http", "https"]
+  methods                    = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+  paths                      = ["/pilot/upload/gr"]
+  path_handling              = "v1"
+  https_redirect_status_code = 426
+  strip_path                 = true
+  preserve_host              = false
+  regex_priority             = 0
+  service_id                 = kong_service.hdc-upload-gr.id
+}
+
 # ==============================================================================
 # Kong Plugins - OIDC Authentication
 # ==============================================================================
@@ -142,7 +168,7 @@ resource "kong_plugin" "pilot_portal_api_oidc" {
     token_endpoint_auth_method         = "client_secret_post"
     logout_path                        = "/logout"
     redirect_after_logout_uri          = "/"
-    ssl_verify                         = "no"  # Self-signed certificates
+    ssl_verify                         = "no" # Self-signed certificates
     session_secret                     = null
     introspection_endpoint             = "https://keycloak.${var.external_ip}/realms/hdc/protocol/openid-connect/token/introspect"
     recovery_page_path                 = null
@@ -171,7 +197,7 @@ resource "kong_plugin" "pilot_portal_api_cors" {
     headers            = []
     methods            = ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]
     exposed_headers    = null
-    origins            = ["*"]  # Alpha: wildcard (matches production)
+    origins            = ["*"] # Alpha: wildcard (matches production)
     max_age            = null
   })
 }
@@ -187,7 +213,7 @@ resource "kong_plugin" "pilot_user_auth_cors" {
     headers            = null
     methods            = ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD", "TRACE", "CONNECT"]
     exposed_headers    = null
-    origins            = ["*"]  # Alpha: wildcard (matches production)
+    origins            = ["*"] # Alpha: wildcard (matches production)
     max_age            = null
   })
 }
@@ -203,7 +229,7 @@ resource "kong_plugin" "pilot_user_auth_refresh_cors" {
     headers            = null
     methods            = ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD", "TRACE", "CONNECT"]
     exposed_headers    = null
-    origins            = ["*"]  # Alpha: wildcard (matches production)
+    origins            = ["*"] # Alpha: wildcard (matches production)
     max_age            = null
   })
 }

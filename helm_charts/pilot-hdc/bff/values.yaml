@@ -68,8 +68,8 @@ extraEnv:
   OPEN_TELEMETRY_ENABLED: false
   ENABLE_PROMETHEUS_METRICS: false
   # TODO IEBH-457: Alpha missing services - replace dummy values when these services are deployed
+  UPLOAD_SERVICE: "http://upload.greenroom:5079"
   WORKSPACE_SERVICE: "http://localhost:5068"
-  UPLOAD_SERVICE: "http://localhost:5079"
   KG_SERVICE: "http://localhost:8000"
   PROVENANCE_SERVICE: "http://localhost:5077"
   NOTIFY_SERVICE: "http://localhost:5065"
