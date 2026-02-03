@@ -68,8 +68,8 @@ resource "kong_service" "dataops_task_stream" {
   depends_on = [helm_release.kong, helm_release.dataops]
 }
 
-resource "kong_service" "hdc-upload-gr" {
-  name            = "hdc-upload-gr"
+resource "kong_service" "pilot_upload_greenroom" {
+  name            = "pilot-upload-greenroom"
   protocol        = "http"
   host            = "upload.greenroom"
   port            = 5079
@@ -137,8 +137,8 @@ resource "kong_route" "pilot_task_stream" {
   service_id                 = kong_service.dataops_task_stream.id
 }
 
-resource "kong_route" "hdc-upload-gr" {
-  name                       = "hdc-upload-gr"
+resource "kong_route" "pilot_upload_greenroom" {
+  name                       = "pilot-upload-greenroom"
   protocols                  = ["http", "https"]
   methods                    = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
   paths                      = ["/pilot/upload/gr"]
@@ -147,7 +147,7 @@ resource "kong_route" "hdc-upload-gr" {
   strip_path                 = true
   preserve_host              = false
   regex_priority             = 0
-  service_id                 = kong_service.hdc-upload-gr.id
+  service_id                 = kong_service.pilot_upload_greenroom.id
 }
 
 # ==============================================================================

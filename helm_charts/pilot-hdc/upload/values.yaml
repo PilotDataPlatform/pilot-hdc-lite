@@ -34,7 +34,7 @@ extraEnv:
 
   S3_INTERNAL: "minio.minio:9000"
   S3_INTERNAL_HTTPS: "False"
-  S3_PUBLIC: "minio-api.demo.hdclite.ebrains.eu"
+  S3_PUBLIC: "minio-api.${EXTERNAL_IP}"
   S3_PUBLIC_HTTPS: "TRUE"
 
   REDIS_HOST: "redis-master.redis"

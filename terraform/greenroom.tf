@@ -72,11 +72,13 @@ resource "helm_release" "upload_greenroom" {
 
   name = "upload-service"
 
-  repository = "https://pilotdataplatform.github.io/helm-charts/"
-  chart      = "upload-service"
-  version    = var.upload_chart_version
-  namespace  = kubernetes_namespace.greenroom.metadata[0].name
-  timeout    = "300"
+  repository      = "https://pilotdataplatform.github.io/helm-charts/"
+  chart           = "upload-service"
+  version         = var.upload_chart_version
+  namespace       = kubernetes_namespace.greenroom.metadata[0].name
+  timeout         = "300"
+  atomic          = true
+  cleanup_on_fail = true
 
   values = [templatefile("../helm_charts/pilot-hdc/upload/values.yaml", {
     EXTERNAL_IP = var.external_ip
@@ -95,8 +97,8 @@ resource "helm_release" "upload_greenroom" {
   depends_on = [
     helm_release.redis,
     helm_release.keycloak,
+    helm_release.minio,
     kubernetes_secret.redis_greenroom_credential,
     kubernetes_secret.minio_greenroom_credential,
-    kubernetes_namespace.minio
   ]
 }
