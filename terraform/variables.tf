@@ -156,6 +156,16 @@ variable "portal_app_version" {
   default = "1.6.1-hdc-lite"
 }
 
+variable "upload_chart_version" {
+  type    = string
+  default = "0.3.1"
+}
+
+variable "upload_app_version" {
+  type    = string
+  default = "2.2.17"
+}
+
 variable "kong_chart_version" {
   type        = string
   default     = "9.1.8"
