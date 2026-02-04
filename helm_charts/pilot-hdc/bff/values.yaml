@@ -59,6 +59,7 @@ extraEnv:
   METADATA_SERVICE: "http://metadata.utility:5066"
   PROJECT_SERVICE: "http://project.utility:5064"
   DATAOPS_SERVICE: "http://dataops.utility:5063"
+  UPLOAD_SERVICE: "http://upload.greenroom:5079"
   # Alpha - MinIO configuration
   MINIO_HOST: "minio.minio:9000"
   # Alpha - Redis configuration
@@ -68,7 +69,6 @@ extraEnv:
   OPEN_TELEMETRY_ENABLED: false
   ENABLE_PROMETHEUS_METRICS: false
   # TODO IEBH-457: Alpha missing services - replace dummy values when these services are deployed
-  UPLOAD_SERVICE: "http://upload.greenroom:5079"
   WORKSPACE_SERVICE: "http://localhost:5068"
   KG_SERVICE: "http://localhost:8000"
   PROVENANCE_SERVICE: "http://localhost:5077"
