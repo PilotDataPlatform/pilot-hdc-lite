@@ -98,7 +98,8 @@ resource "helm_release" "upload_greenroom" {
     helm_release.redis,
     helm_release.keycloak,
     helm_release.minio,
+    helm_release.kafka,
     kubernetes_secret.redis_greenroom_credential,
-    kubernetes_secret.minio_greenroom_credential,
+    kubernetes_secret.minio_greenroom_credential
   ]
 }
