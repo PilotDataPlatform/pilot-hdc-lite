@@ -136,7 +136,6 @@ resource "helm_release" "download_greenroom" {
   chart            = "download-service"
   version          = var.download_chart_version
   namespace        = kubernetes_namespace.greenroom.metadata[0].name
-  create_namespace = "true"
   timeout          = "300"
   atomic           = true
   cleanup_on_fail  = true
@@ -158,6 +157,9 @@ resource "helm_release" "download_greenroom" {
   depends_on = [
     helm_release.redis,
     helm_release.minio,
-    helm_release.kafka
+    helm_release.kafka,
+    kubernetes_secret.download_secret,
+    kubernetes_secret.redis_greenroom_credential,
+    kubernetes_secret.minio_greenroom_credential
   ]
 }
