@@ -1,0 +1,84 @@
+appConfig:
+  env: staging
+  port: 5077
+
+deploymentAnnotations:
+  "sidecar.jaegertracing.io/inject": "true"
+
+image:
+  repository: docker-registry.ebrains.eu/hdc-services-image/download
+  # tag: set by Terraform via var.download_app_version
+  pullPolicy: IfNotPresent
+
+fullnameOverride: download
+
+container:
+  port: 5077
+
+service:
+  type: ClusterIP
+  port: 5077
+
+extraEnv:
+  HOST: "0.0.0.0"
+
+  namespace: "greenroom"
+
+  ROOT_PATH: "/tmp"
+  CORE_ZONE_LABEL: "Core"
+  GREEN_ZONE_LABEL: "Greenroom"
+
+  S3_INTERNAL: "minio.minio:9000"
+  S3_INTERNAL_HTTPS: "FALSE"
+  S3_PUBLIC: "minio-api.${EXTERNAL_IP}"
+  S3_PUBLIC_HTTPS: "TRUE"
+
+extraEnvYaml:
+  - name: DOWNLOAD_KEY
+    valueFrom:
+      secretKeyRef:
+        name: download-secret
+        key: DOWNLOAD_KEY
+  - name: REDIS_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: redis
+        key: REDIS_PASSWORD
+  - name: S3_ACCESS_KEY
+    valueFrom:
+      secretKeyRef:
+        name: minio-credential
+        key: MINIO_ACCESS_KEY
+  - name: S3_SECRET_KEY
+    valueFrom:
+      secretKeyRef:
+        name: minio-credential
+        key: MINIO_SECRET_KEY
+
+resources:
+  requests:
+    cpu: "150m"
+    memory: 150Mi
+  limits:
+    cpu: "300m"
+    memory: 300Mi
+
+readinessProbe:
+  failureThreshold: 3
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  successThreshold: 1
+  tcpSocket:
+    port: 5077
+
+livenessProbe:
+  failureThreshold: 3
+  httpGet:
+    path: /v1/health
+    port: 5077
+    scheme: HTTP
+  periodSeconds: 10
+  successThreshold: 1
+  timeoutSeconds: 3
+
+replicaCount: 1
