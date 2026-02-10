@@ -166,6 +166,16 @@ variable "upload_app_version" {
   default = "2.2.17"
 }
 
+variable "download_chart_version" {
+  type    = string
+  default = "1.0.6"
+}
+
+variable "download_app_version" {
+  type    = string
+  default = "2.2.19"
+}
+
 variable "kong_chart_version" {
   type        = string
   default     = "9.1.8"

@@ -60,6 +60,7 @@ extraEnv:
   PROJECT_SERVICE: "http://project.utility:5064"
   DATAOPS_SERVICE: "http://dataops.utility:5063"
   UPLOAD_SERVICE: "http://upload.greenroom:5079"
+  DOWNLOAD_SERVICE_GR: "http://download.greenroom:5077"
   # Alpha - MinIO configuration
   MINIO_HOST: "minio.minio:9000"
   # Alpha - Redis configuration
@@ -75,7 +76,6 @@ extraEnv:
   NOTIFY_SERVICE: "http://localhost:5065"
   DATASET_SERVICE: "http://localhost:5081"
   DOWNLOAD_SERVICE_CORE: "http://localhost:5077"
-  DOWNLOAD_SERVICE_GR: "http://localhost:5077"
   APPROVAL_SERVICE: "http://localhost:8000"
   SEARCH_SERVICE: "http://localhost:5064"
 

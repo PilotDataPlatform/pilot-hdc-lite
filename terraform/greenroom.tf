@@ -4,6 +4,11 @@ resource "kubernetes_namespace" "greenroom" {
   }
 }
 
+resource "random_password" "download_secret" {
+  length  = 32
+  special = true
+}
+
 resource "kubernetes_secret" "docker_greenroom_registry" {
   metadata {
     name      = "docker-registry-secret"
@@ -68,6 +73,25 @@ resource "kubernetes_secret" "redis_greenroom_credential" {
   depends_on = [data.kubernetes_secret.redis_credential]
 }
 
+resource "kubernetes_secret" "download_secret" {
+  metadata {
+    name      = "download-secret"
+    namespace = kubernetes_namespace.greenroom.metadata[0].name
+  }
+
+  type = "Opaque"
+
+  data = {
+    "DOWNLOAD_KEY" = random_password.download_secret.result
+  }
+
+  lifecycle {
+    ignore_changes = [data]
+  }
+
+  depends_on = [random_password.download_secret]
+}
+
 resource "helm_release" "upload_greenroom" {
 
   name = "upload-service"
@@ -101,5 +125,39 @@ resource "helm_release" "upload_greenroom" {
     helm_release.kafka,
     kubernetes_secret.redis_greenroom_credential,
     kubernetes_secret.minio_greenroom_credential
+  ]
+}
+
+resource "helm_release" "download_greenroom" {
+
+  name = "download-service"
+
+  repository       = "https://pilotdataplatform.github.io/helm-charts/"
+  chart            = "download-service"
+  version          = var.download_chart_version
+  namespace        = kubernetes_namespace.greenroom.metadata[0].name
+  create_namespace = "true"
+  timeout          = "300"
+  atomic           = true
+  cleanup_on_fail  = true
+
+  values = [templatefile("../helm_charts/pilot-hdc/download/values.yaml", {
+    EXTERNAL_IP = var.external_ip
+  })]
+
+  set {
+    name  = "image.tag"
+    value = "download-${var.download_app_version}"
+  }
+
+  set {
+    name  = "imagePullSecrets[0].name"
+    value = kubernetes_secret.docker_greenroom_registry.metadata[0].name
+  }
+
+  depends_on = [
+    helm_release.redis,
+    helm_release.minio,
+    helm_release.kafka
   ]
 }

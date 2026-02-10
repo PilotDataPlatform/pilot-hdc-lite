@@ -93,7 +93,7 @@ resource "keycloak_openid_client" "react_app" {
 
   # Valid post-logout redirect URIs
   valid_post_logout_redirect_uris = [
-    "https://${var.external_ip}/*"
+    "+"
   ]
 
   # Web origins for CORS

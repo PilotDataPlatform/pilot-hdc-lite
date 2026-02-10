@@ -81,6 +81,19 @@ resource "kong_service" "pilot_upload_greenroom" {
   depends_on = [helm_release.kong, helm_release.upload_greenroom]
 }
 
+resource "kong_service" "pilot_download_greenroom" {
+  name            = "pilot-download-greenroom"
+  protocol        = "http"
+  host            = "download.greenroom"
+  port            = 5077
+  retries         = 5
+  connect_timeout = 60000
+  write_timeout   = 60000
+  read_timeout    = 60000
+
+  depends_on = [helm_release.kong, helm_release.download_greenroom]
+}
+
 # ==============================================================================
 # Kong Routes - URL Path Mappings
 # ==============================================================================
@@ -148,6 +161,19 @@ resource "kong_route" "pilot_upload_greenroom" {
   preserve_host              = false
   regex_priority             = 0
   service_id                 = kong_service.pilot_upload_greenroom.id
+}
+
+resource "kong_route" "pilot_download_greenroom" {
+  name                       = "pilot-download-greenroom"
+  protocols                  = ["http", "https"]
+  methods                    = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+  paths                      = ["/pilot/portal/download/gr"]
+  path_handling              = "v1"
+  https_redirect_status_code = 426
+  strip_path                 = true
+  preserve_host              = false
+  regex_priority             = 0
+  service_id                 = kong_service.pilot_download_greenroom.id
 }
 
 # ==============================================================================
