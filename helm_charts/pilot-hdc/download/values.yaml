@@ -7,7 +7,7 @@ deploymentAnnotations:
 
 image:
   repository: docker-registry.ebrains.eu/hdc-services-image/download
-  # tag: set by Terraform via var.upload_app_version
+  # tag: set by Terraform via var.download_app_version
   pullPolicy: IfNotPresent
 
 fullnameOverride: download
