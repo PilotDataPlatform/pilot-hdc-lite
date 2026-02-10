@@ -153,7 +153,7 @@ variable "portal_chart_version" {
 
 variable "portal_app_version" {
   type    = string
-  default = "1.6.1-hdc-lite"
+  default = "1.6.6-hdc-lite"
 }
 
 variable "upload_chart_version" {
