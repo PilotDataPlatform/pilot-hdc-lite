@@ -56,7 +56,7 @@ variable "dataops_chart_version" {
 
 variable "dataops_app_version" {
   type    = string
-  default = "2.5.7"
+  default = "2.5.9"
 }
 
 variable "docker_registry_username" {
