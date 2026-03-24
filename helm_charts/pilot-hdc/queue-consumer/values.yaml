@@ -1,0 +1,98 @@
+appConfig:
+  env: "staging"
+
+deploymentAnnotations:
+  "sidecar.jaegertracing.io/inject": "true"
+
+image:
+  repository: docker-registry.ebrains.eu/hdc-services-image/queue/consumer
+  # tag: set by Terraform via var.queue-consumer_app_version
+  pullPolicy: IfNotPresent
+
+fullnameOverride: queue-consumer
+
+serviceAccount:
+  create: true
+  name: queue-consumer
+
+container:
+  port: 6060
+
+extraEnv:
+  bids_validate_pipeline: "bids_validate"
+  core_mount: "/core-data"
+  core_volume_name: "nfsvol-core-data"
+  claim_name: "greenroom-storage"
+  copy_pipeline: "data_transfer"
+  copy_pipeline_folder: "data_transfer_folder"
+  data_lake: "/data/core-storage"
+  gr_queue: "gr_queue"
+  gr_exchange: "gr_exchange"
+  move_pipeline: "data_delete"
+  move_pipeline_folder: "data_delete_folder"
+  GREEN_ZONE_LABEL: "Greenroom"
+  CORE_ZONE_LABEL: "Core"
+  RDS_DBNAME: "approval"
+  NFS_MOUNT: "nfsvol"
+  RDS_HOST: "postgres.utility"
+  RDS_PORT: 5432
+  S3_HOST: "minio.minio"
+  S3_PORT: 9000
+  S3_INTERNAL_HTTPS: false
+  DATAOPS_SERVICE: "http://dataops.utility:5063"
+  DATASET_SERVICE: "http://dataset.utility:5081"
+  QUEUE_SERVICE: "http://queue-producer.greenroom:6060"
+  METADATA_SERVICE: "http://metadata.utility:5066"
+  PROJECT_SERVICE: "http://project.utility:5064"
+  APPROVAL_SERVICE: "http://approval.utility:8000"
+  NOTIFICATION_SERVICE: "http://notification.utility:5065"
+  KAFKA_URL: "kafka.utility:9092"
+  REDIS_HOST: "redis-master.redis"
+  REDIS_PORT: 6379
+  ATLAS_HOST: "atlas.utility"
+  ATLAS_PORT: 21000
+  gm_queue_endpoint: "message-bus-greenroom.greenroom"
+  gm_username: "greenroom"
+
+extraEnvYaml:
+  - name: gm_password
+    valueFrom:
+      secretKeyRef:
+        name: message-bus-greenroom-secret
+        key: rabbitmq-password
+  - name: REDIS_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: redis
+        key: REDIS_PASSWORD
+  - name: S3_ACCESS_KEY
+    valueFrom:
+      secretKeyRef:
+        name: minio-credential
+        key: MINIO_ACCESS_KEY
+  - name: S3_SECRET_KEY
+    valueFrom:
+      secretKeyRef:
+        name: minio-credential
+        key: MINIO_SECRET_KEY
+
+volumes:
+  name: nfsvol
+  mountPath: /data/core-storage
+  claimName: greenroom-storage
+
+replicaCount: 1
+
+resources:
+  requests:
+    cpu: "150m"
+    memory: 150Mi
+  limits:
+    cpu: "300m"
+    memory: 300Mi
+
+updateStrategy:
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 33%
+  type: RollingUpdate
