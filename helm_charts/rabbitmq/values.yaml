@@ -1,0 +1,17 @@
+fullnameOverride: message-bus-greenroom
+
+global:
+  imageRegistry: docker-registry.ebrains.eu
+  imagePullSecrets:
+    - docker-registry-external-secret
+
+image:
+  repository: hdc-services-external/bitnami/rabbitmq
+  tag: 3.11.6-debian-11-r0
+
+auth:
+  username: greenroom
+  existingPasswordSecret: "message-bus-greenroom-secret"
+
+replica:
+  replicaCount: 1

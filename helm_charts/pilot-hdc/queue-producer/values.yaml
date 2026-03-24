@@ -1,0 +1,65 @@
+appConfig:
+  env: "staging"
+
+deploymentAnnotations:
+  "sidecar.jaegertracing.io/inject": "true"
+
+image:
+  repository: docker-registry.ebrains.eu/hdc-services-image/queue/producer
+  # tag: set by Terraform via var.queue_producer_app_version
+  pullPolicy: IfNotPresent
+
+fullnameOverride: queue-producer
+
+container:
+  port: 6060
+
+service:
+  type: ClusterIP
+  port: 6060
+  targetPort: 6060
+
+extraEnv:
+  copy_pipeline: "data_transfer"
+  data_storage: "/core-data"
+  gr_queue: "gr_queue"
+  gr_exchange: "gr_exchange"
+  LOG_PATH: "/tmp/logs"
+  move_pipeline: "data_delete"
+  WORK_PATH: "/tmp/workdir"
+  gm_queue_endpoint: "message-bus-greenroom.greenroom"
+  gm_username: "greenroom"
+
+extraEnvYaml:
+  - name: gm_password
+    valueFrom:
+      secretKeyRef:
+        name: message-bus-greenroom-secret
+        key: rabbitmq-password
+
+volumes:
+  name: nfsvol
+  mountPath: /data/core-storage
+  claimName: greenroom-storage
+
+replicaCount: 1
+
+resources:
+  requests:
+    cpu: "150m"
+    memory: 150Mi
+  limits:
+    cpu: "300m"
+    memory: 300Mi
+
+readinessProbe:
+  tcpSocket:
+    port: 6060
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+updateStrategy:
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 33%
+  type: RollingUpdate

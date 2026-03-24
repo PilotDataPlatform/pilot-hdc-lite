@@ -29,6 +29,11 @@ variable "minio_chart_version" {
   default = "11.10.26"
 }
 
+variable "message_bus_greenroom_chart_version" {
+  type    = string
+  default = "10.1.12"
+}
+
 variable "metadata_chart_version" {
   type    = string
   default = "0.5.1"
@@ -172,6 +177,31 @@ variable "download_chart_version" {
 }
 
 variable "download_app_version" {
+  type    = string
+  default = "2.2.19"
+}
+
+variable "queue_consumer_chart_version" {
+  type    = string
+  default = "0.3.0"
+}
+
+variable "queue_consumer_app_version" {
+  type    = string
+  default = "2.2.14"
+}
+
+variable "queue_producer_chart_version" {
+  type    = string
+  default = "0.3.0"
+}
+
+variable "queue_producer_app_version" {
+  type    = string
+  default = "2.2.14"
+}
+
+variable "filecopy_app_version" {
   type    = string
   default = "2.2.19"
 }
