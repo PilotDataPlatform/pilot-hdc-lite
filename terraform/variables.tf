@@ -181,22 +181,22 @@ variable "download_app_version" {
   default = "2.2.19"
 }
 
-variable "queue-consumer_chart_version" {
+variable "queue_consumer_chart_version" {
   type    = string
   default = "0.3.0"
 }
 
-variable "queue-consumer_app_version" {
+variable "queue_consumer_app_version" {
   type    = string
   default = "2.2.14"
 }
 
-variable "queue-producer_chart_version" {
+variable "queue_producer_chart_version" {
   type    = string
   default = "0.3.0"
 }
 
-variable "queue-producer_app_version" {
+variable "queue_producer_app_version" {
   type    = string
   default = "2.2.14"
 }

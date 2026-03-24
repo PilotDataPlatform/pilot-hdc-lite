@@ -225,7 +225,7 @@ resource "helm_release" "download_greenroom" {
   ]
 }
 
-resource "kubernetes_persistent_volume_claim_v1" "greenroom-storage" {
+resource "kubernetes_persistent_volume_claim_v1" "greenroom_storage" {
   metadata {
     name      = "greenroom-storage"
     namespace = kubernetes_namespace.greenroom.metadata[0].name
@@ -240,9 +240,11 @@ resource "kubernetes_persistent_volume_claim_v1" "greenroom-storage" {
     }
     storage_class_name = "local-path"
   }
+
+  wait_until_bound = false
 }
 
-resource "kubernetes_role_v1" "queue-consumer-job-creator" {
+resource "kubernetes_role_v1" "queue_consumer_job_creator" {
   metadata {
     name      = "queue-consumer-job-creator"
     namespace = kubernetes_namespace.greenroom.metadata[0].name
@@ -255,7 +257,7 @@ resource "kubernetes_role_v1" "queue-consumer-job-creator" {
   }
 }
 
-resource "kubernetes_role_binding_v1" "queue-consumer-job-creator" {
+resource "kubernetes_role_binding_v1" "queue_consumer_job_creator" {
   metadata {
     name      = "queue-consumer-job-creator"
     namespace = kubernetes_namespace.greenroom.metadata[0].name
@@ -272,13 +274,13 @@ resource "kubernetes_role_binding_v1" "queue-consumer-job-creator" {
   }
 }
 
-resource "helm_release" "queue-consumer" {
+resource "helm_release" "queue_consumer" {
 
   name = "queue-consumer-service"
 
   repository      = "https://pilotdataplatform.github.io/helm-charts/"
   chart           = "queue-service"
-  version         = var.queue-consumer_chart_version
+  version         = var.queue_consumer_chart_version
   namespace       = kubernetes_namespace.greenroom.metadata[0].name
   timeout         = "300"
   atomic          = true
@@ -290,7 +292,7 @@ resource "helm_release" "queue-consumer" {
 
   set {
     name  = "image.tag"
-    value = "consumer-${var.queue-consumer_app_version}"
+    value = "consumer-${var.queue_consumer_app_version}"
   }
 
   set {
@@ -310,16 +312,17 @@ resource "helm_release" "queue-consumer" {
     helm_release.message_bus_greenroom,
     kubernetes_secret.message_bus_greenroom_secret,
     kubernetes_secret.redis_greenroom_credential,
+    kubernetes_persistent_volume_claim_v1.greenroom_storage,
   ]
 }
 
-resource "helm_release" "queue-producer" {
+resource "helm_release" "queue_producer" {
 
   name = "queue-producer-service"
 
   repository      = "https://pilotdataplatform.github.io/helm-charts/"
   chart           = "queue-service"
-  version         = var.queue-producer_chart_version
+  version         = var.queue_producer_chart_version
   namespace       = kubernetes_namespace.greenroom.metadata[0].name
   timeout         = "300"
   atomic          = true
@@ -331,7 +334,7 @@ resource "helm_release" "queue-producer" {
 
   set {
     name  = "image.tag"
-    value = "producer-${var.queue-producer_app_version}"
+    value = "producer-${var.queue_producer_app_version}"
   }
 
   set {
@@ -345,5 +348,6 @@ resource "helm_release" "queue-producer" {
     helm_release.kafka,
     helm_release.message_bus_greenroom,
     kubernetes_secret.message_bus_greenroom_secret,
+    kubernetes_persistent_volume_claim_v1.greenroom_storage,
   ]
 }
