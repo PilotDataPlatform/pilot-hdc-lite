@@ -34,22 +34,22 @@ extraEnv:
   HOST: "0.0.0.0"
   PORT: "5064"
 extraEnvYaml:
-  - name: OPSDB_UTILITY_USERNAME
+  - name: RDS_DB_USERNAME
     valueFrom:
       secretKeyRef:
         name: project-db-credential
         key: DB_USERNAME
-  - name: OPSDB_UTILITY_PASSWORD
+  - name: RDS_DB_PASSWORD
     valueFrom:
       secretKeyRef:
         name: project-db-credential
         key: DB_PASSWORD
-  - name: OPSDB_UTILITY_HOST
+  - name: RDS_DB_HOST
     valueFrom:
       secretKeyRef:
         name: project-db-credential
         key: DB_HOST
-  - name: OPSDB_UTILITY_PORT
+  - name: RDS_DB_PORT
     valueFrom:
       secretKeyRef:
         name: project-db-credential
@@ -66,12 +66,8 @@ extraEnvYaml:
         key: MINIO_SECRET_KEY
 
 resources:
-  requests:
-    cpu: "150m"
-    memory: 150Mi
   limits:
-    cpu: "300m"
-    memory: 300Mi
+    memory: "500Mi"
 
 readinessProbe:
   failureThreshold: 3

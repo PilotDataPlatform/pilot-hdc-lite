@@ -15,11 +15,11 @@ echo "Password: $(kubectl get secret minio -n minio -o jsonpath='{.data.root-pas
 echo ""
 echo "=== PostgreSQL (Keycloak backend) ==="
 echo "Username: bn_keycloak"
-echo "Password: $(kubectl get secret postgres-postgresql -n keycloak -o jsonpath='{.data.password}' 2>/dev/null | base64 -d || echo 'Not found')"
+echo "Password: $(kubectl get secret keycloak-postgres-postgresql -n keycloak -o jsonpath='{.data.password}' 2>/dev/null | base64 -d || echo 'Not found')"
 
 echo ""
 echo "=== PostgreSQL (Utility namespace) ==="
 echo "Username: postgres"
-echo "Password: $(kubectl get secret postgres-postgresql -n utility -o jsonpath='{.data.postgres-password}' 2>/dev/null | base64 -d || echo 'Not found')"
+echo "Password: $(kubectl get secret postgres -n utility -o jsonpath='{.data.postgres-password}' 2>/dev/null | base64 -d || echo 'Not found')"
 
 echo ""

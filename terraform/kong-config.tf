@@ -109,6 +109,8 @@ resource "kong_route" "pilot_portal_api" {
   preserve_host              = false
   regex_priority             = 0
   service_id                 = kong_service.pilot_portal_api.id
+
+  depends_on = [kong_service.pilot_portal_api]
 }
 
 resource "kong_route" "pilot_user_auth" {
@@ -122,6 +124,8 @@ resource "kong_route" "pilot_user_auth" {
   preserve_host              = false
   regex_priority             = 0
   service_id                 = kong_service.pilot_user_auth.id
+
+  depends_on = [kong_service.pilot_user_auth]
 }
 
 resource "kong_route" "pilot_user_auth_refresh" {
@@ -135,6 +139,8 @@ resource "kong_route" "pilot_user_auth_refresh" {
   preserve_host              = false
   regex_priority             = 0
   service_id                 = kong_service.pilot_user_auth_refresh.id
+
+  depends_on = [kong_service.pilot_user_auth_refresh]
 }
 
 resource "kong_route" "pilot_task_stream" {
@@ -148,6 +154,8 @@ resource "kong_route" "pilot_task_stream" {
   preserve_host              = false
   regex_priority             = 0
   service_id                 = kong_service.dataops_task_stream.id
+
+  depends_on = [kong_service.dataops_task_stream]
 }
 
 resource "kong_route" "pilot_upload_greenroom" {
@@ -161,6 +169,8 @@ resource "kong_route" "pilot_upload_greenroom" {
   preserve_host              = false
   regex_priority             = 0
   service_id                 = kong_service.pilot_upload_greenroom.id
+
+  depends_on = [kong_service.pilot_upload_greenroom]
 }
 
 resource "kong_route" "pilot_download_greenroom" {
@@ -174,6 +184,8 @@ resource "kong_route" "pilot_download_greenroom" {
   preserve_host              = false
   regex_priority             = 0
   service_id                 = kong_service.pilot_download_greenroom.id
+
+  depends_on = [kong_service.pilot_download_greenroom]
 }
 
 # ==============================================================================
@@ -196,16 +208,18 @@ resource "kong_plugin" "pilot_portal_api_oidc" {
     redirect_after_logout_uri          = "/"
     ssl_verify                         = "no" # Self-signed certificates
     session_secret                     = null
-    introspection_endpoint             = "https://keycloak.${var.external_ip}/realms/hdc/protocol/openid-connect/token/introspect"
+    introspection_endpoint             = "https://keycloak.${var.external_domain}/realms/hdc/protocol/openid-connect/token/introspect"
     recovery_page_path                 = null
     filters                            = null
     client_id                          = "kong"
     realm                              = "kong"
-    discovery                          = "https://keycloak.${var.external_ip}/realms/hdc/.well-known/openid-configuration"
+    discovery                          = "https://keycloak.${var.external_domain}/realms/hdc/.well-known/openid-configuration"
     bearer_only                        = "yes"
     client_secret                      = keycloak_openid_client.kong.client_secret
     scope                              = "openid"
   })
+
+  depends_on = [kong_route.pilot_portal_api]
 }
 
 # ==============================================================================
@@ -226,6 +240,8 @@ resource "kong_plugin" "pilot_portal_api_cors" {
     origins            = ["*"] # Alpha: wildcard (matches production)
     max_age            = null
   })
+
+  depends_on = [kong_route.pilot_portal_api]
 }
 
 resource "kong_plugin" "pilot_user_auth_cors" {
@@ -242,6 +258,8 @@ resource "kong_plugin" "pilot_user_auth_cors" {
     origins            = ["*"] # Alpha: wildcard (matches production)
     max_age            = null
   })
+
+  depends_on = [kong_route.pilot_user_auth]
 }
 
 resource "kong_plugin" "pilot_user_auth_refresh_cors" {
@@ -258,4 +276,6 @@ resource "kong_plugin" "pilot_user_auth_refresh_cors" {
     origins            = ["*"] # Alpha: wildcard (matches production)
     max_age            = null
   })
+
+  depends_on = [kong_route.pilot_user_auth_refresh]
 }

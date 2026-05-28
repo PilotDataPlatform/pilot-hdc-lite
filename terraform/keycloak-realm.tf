@@ -26,6 +26,12 @@ resource "keycloak_realm" "hdc" {
   }
 }
 
+data "keycloak_realm_keys" "hdc" {
+  realm_id   = keycloak_realm.hdc.id
+  algorithms = ["RS256"]
+  status     = ["ACTIVE"]
+}
+
 # -----------------------------------------------------------------------------
 # Realm Roles
 # -----------------------------------------------------------------------------
@@ -88,7 +94,7 @@ resource "keycloak_openid_client" "react_app" {
 
   # Valid redirect URIs - allow all paths on portal domain
   valid_redirect_uris = [
-    "https://${var.external_ip}/*"
+    "https://${var.external_domain}/*"
   ]
 
   # Valid post-logout redirect URIs
@@ -98,13 +104,15 @@ resource "keycloak_openid_client" "react_app" {
 
   # Web origins for CORS
   web_origins = [
-    "https://${var.external_ip}"
+    "https://${var.external_domain}"
   ]
 
   # Base URL
-  base_url = "https://${var.external_ip}"
+  base_url = "https://${var.external_domain}"
 
   backchannel_logout_session_required = false
+
+  depends_on = [keycloak_realm.hdc]
 }
 
 # Configure default scopes for react-app client
@@ -120,6 +128,8 @@ resource "keycloak_openid_client_default_scopes" "react_app" {
     "groups",
     "openid"
   ]
+
+  depends_on = [keycloak_openid_client.react_app]
 }
 
 # -----------------------------------------------------------------------------
@@ -136,9 +146,9 @@ resource "keycloak_openid_user_attribute_protocol_mapper" "react_app_minio_polic
   claim_name       = "policy"
   claim_value_type = "String"
 
-  add_to_id_token      = true
-  add_to_access_token  = true
-  add_to_userinfo      = true
+  add_to_id_token     = true
+  add_to_access_token = true
+  add_to_userinfo     = true
 }
 
 # MinIO audience mapper - adds "minio" as custom audience
@@ -203,6 +213,10 @@ resource "keycloak_user" "admin" {
     value     = var.keycloak_admin_test_password
     temporary = false
   }
+
+  lifecycle {
+    ignore_changes = [attributes]
+  }
 }
 
 # Assign platform-admin role to admin user
@@ -241,12 +255,12 @@ resource "keycloak_openid_client" "kong" {
 
   # Valid redirect URIs for Kong
   valid_redirect_uris = [
-    "https://api.${var.external_ip}/*"
+    "https://api.${var.external_domain}/*"
   ]
 
   # Web origins for CORS
   web_origins = [
-    "https://api.${var.external_ip}"
+    "https://api.${var.external_domain}"
   ]
 }
 

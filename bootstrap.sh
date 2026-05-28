@@ -16,19 +16,14 @@ else
     if [[ -f "${SCRIPT_DIR}/.env.example" ]]; then
         echo "ERROR: Missing .env file. Copy .env.example to .env and configure: cp .env.example .env"
     else
-        echo "ERROR: Missing .env file. Create one with: EXTERNAL_IP=<your-external-ip> and RSA_PUBLIC_KEY=<your-rsa-public-key>"
+        echo "ERROR: Missing .env file."
     fi
     exit 1
 fi
 
 # Validate required variables
-if [[ -z "${EXTERNAL_IP}" ]]; then
-    echo "ERROR: EXTERNAL_IP must be set in .env file"
-    exit 1
-fi
-
-if [[ -z "${RSA_PUBLIC_KEY}" ]]; then
-    echo "ERROR: RSA_PUBLIC_KEY must be set in .env file"
+if [[ -z "${EXTERNAL_DOMAIN}" ]]; then
+    echo "ERROR: EXTERNAL_DOMAIN must be set in .env file"
     exit 1
 fi
 
@@ -137,7 +132,7 @@ run_terraform() {
     log "Checking for Terraform..."
 
     if command -v terraform >/dev/null 2>&1; then
-        log "Running Terraform deployment with external IP: ${EXTERNAL_IP}..."
+        log "Running Terraform deployment with external IP: ${EXTERNAL_DOMAIN}..."
         cd "${SCRIPT_DIR}/terraform"
 
         # Check if this is a fresh deployment (Keycloak doesn't exist yet)
@@ -146,12 +141,11 @@ run_terraform() {
 
             # Source .env and export Terraform variables (required for targeted apply)
             source "${SCRIPT_DIR}/.env"
-            export TF_VAR_external_ip="${EXTERNAL_IP}"
+            export TF_VAR_external_domain="${EXTERNAL_DOMAIN}"
             export TF_VAR_docker_registry_username="${DOCKER_REGISTRY_USERNAME:-}"
             export TF_VAR_docker_registry_password="${DOCKER_REGISTRY_PASSWORD:-}"
             export TF_VAR_docker_registry_external_username="${DOCKER_REGISTRY_EXTERNAL_USERNAME:-}"
             export TF_VAR_docker_registry_external_password="${DOCKER_REGISTRY_EXTERNAL_PASSWORD:-}"
-            export TF_VAR_rsa_public_key="${RSA_PUBLIC_KEY:-}"
             export TF_VAR_demo_mode="${DEMO:-false}"
             export TF_VAR_keycloak_admin_username="${KEYCLOAK_ADMIN_USERNAME}"
             export TF_VAR_keycloak_admin_password="${KEYCLOAK_ADMIN_PASSWORD}"
@@ -172,7 +166,7 @@ run_terraform() {
 
             # Wait for Keycloak service to respond to health check (timeout: 60s)
             log "Waiting for Keycloak service to respond..."
-            KEYCLOAK_URL="https://keycloak.${EXTERNAL_IP}/realms/master"
+            KEYCLOAK_URL="https://keycloak.${EXTERNAL_DOMAIN}/realms/master"
             TIMEOUT=60
             INTERVAL=5
             ELAPSED=0
@@ -241,7 +235,7 @@ run_terraform() {
     else
         warn "Terraform not found. Skipping Terraform deployment."
         warn "Services will need to be deployed manually or install Terraform and run:"
-        warn "  cd terraform && ./run.sh -var=\"external_ip=${EXTERNAL_IP}\""
+        warn "  cd terraform && ./run.sh -var=\"external_domain=${EXTERNAL_DOMAIN}\""
     fi
 }
 
@@ -256,12 +250,12 @@ show_status() {
         echo ""
         
         echo "=== Access Information ==="
-        echo "Portal should be accessible at: https://${EXTERNAL_IP}"
-        echo "Keycloak should be accessible at: https://keycloak.${EXTERNAL_IP}"
-        echo "MinIO Console should be accessible at: https://minio-console.${EXTERNAL_IP}"
-        echo "MinIO API should be accessible at: https://minio-api.${EXTERNAL_IP}"
-        echo "API Gateway should be accessible at: https://api.${EXTERNAL_IP}"
-        echo "Platform domain: ${EXTERNAL_IP}"
+        echo "Portal should be accessible at: https://${EXTERNAL_DOMAIN}"
+        echo "Keycloak should be accessible at: https://keycloak.${EXTERNAL_DOMAIN}"
+        echo "MinIO Console should be accessible at: https://minio-console.${EXTERNAL_DOMAIN}"
+        echo "MinIO API should be accessible at: https://minio-api.${EXTERNAL_DOMAIN}"
+        echo "API Gateway should be accessible at: https://api.${EXTERNAL_DOMAIN}"
+        echo "Platform domain: ${EXTERNAL_DOMAIN}"
         echo "(Once all services are deployed and running)"
     else
         echo "kubectl not available - check k3s installation"

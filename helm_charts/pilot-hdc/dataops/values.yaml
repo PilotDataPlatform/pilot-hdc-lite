@@ -58,9 +58,5 @@ appConfig:
   port: 5063
 
 resources:
-  requests:
-    cpu: "150m"
-    memory: 150Mi
   limits:
-    cpu: "300m"
-    memory: 300Mi
+    memory: "500Mi"

@@ -35,7 +35,7 @@ appConfig:
   env: "staging"
 
 extraEnv:
-  SITE_DOMAIN: "https://${EXTERNAL_IP}"
+  SITE_DOMAIN: "https://${EXTERNAL_DOMAIN}"
   CORE_ZONE_LABEL: "Core"
   GREENROOM_ZONE_LABEL: "Greenroom"
   PROJECT_NAME: "Pilot HDC Lite"
@@ -52,7 +52,7 @@ extraEnv:
   LDAP_USER_OBJECTCLASS: "cn"
   LDAP_SET_GIDNUMBER: true
   S3_GATEWAY: "True"
-  INVITATION_URL_LOGIN: "https://${EXTERNAL_IP}/login/"
+  INVITATION_URL_LOGIN: "https://${EXTERNAL_DOMAIN}/login/"
   # Alpha - services that ARE deployed
   SERVICE_CLIENT_TIMEOUT: 60
   AUTH_SERVICE: "http://auth.utility:5061"
@@ -97,12 +97,8 @@ extraEnvYaml:
         key: REDIS_PASSWORD
 
 resources:
-  requests:
-    memory: "250Mi"
-    cpu: "250m"
   limits:
     memory: "500Mi"
-    cpu: "500m"
 
 readinessProbe:
   tcpSocket:

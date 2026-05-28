@@ -1,7 +1,7 @@
 # Hostname will be overridden by Terraform with auto-detected IP
 image:
   registry: docker.io
-  repository: bitnami/keycloak
+  repository: bitnamilegacy/keycloak
   tag: 20.0.5-debian-11-r4
 service:
   type: ClusterIP
