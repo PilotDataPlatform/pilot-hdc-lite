@@ -1,6 +1,6 @@
 ## Pilot HDC Lite
 
-A lightweight, single-VM lite version of the [Pilot-HDC](https://hdc.humanbrainproject.eu/) platform. This lite version is designed for:
+A lightweight, single-VM lite version of the [Pilot-HDC](https://hdc.ebrains.eu/) platform. This lite version is designed for:
 - Scientific researchers and small labs
 - Internal development teams
 - CI/CD and demo environments
