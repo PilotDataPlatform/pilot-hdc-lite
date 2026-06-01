@@ -132,7 +132,7 @@ run_terraform() {
     log "Checking for Terraform..."
 
     if command -v terraform >/dev/null 2>&1; then
-        log "Running Terraform deployment with external IP: ${EXTERNAL_DOMAIN}..."
+        log "Running Terraform deployment with external domain: ${EXTERNAL_DOMAIN}..."
         cd "${SCRIPT_DIR}/terraform"
 
         # Check if this is a fresh deployment (Keycloak doesn't exist yet)

@@ -60,7 +60,7 @@ A lightweight, single-VM lite version of the [Pilot-HDC](https://hdc.humanbrainp
    ./bootstrap.sh
    ```
    
-    If Terraform is unable to provision Kong-related resources in a single run, simply re-run the script.
+   If Terraform is unable to provision Kong-related resources in a single run, simply re-run the script.
 
 4. **Access**:
    - Portal: `https://<EXTERNAL_DOMAIN>`

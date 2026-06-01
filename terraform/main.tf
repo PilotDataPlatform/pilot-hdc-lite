@@ -66,6 +66,6 @@ provider "kong" {
 data "kubernetes_nodes" "cluster_nodes" {}
 
 locals {
-  # Use external IP for ingress hostnames
+  # Use external domain for ingress hostnames
   node_ip = var.external_domain
 }

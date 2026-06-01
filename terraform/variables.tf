@@ -5,7 +5,7 @@ variable "nodeport" {
 }
 
 variable "external_domain" {
-  description = "External IP address for ingress hostnames"
+  description = "External domain for ingress hostnames"
   type        = string
 }
 
