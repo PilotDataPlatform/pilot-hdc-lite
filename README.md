@@ -68,6 +68,14 @@ A lightweight, single-VM lite version of the [Pilot-HDC](https://hdc.humanbrainp
    - API Gateway: `https://api.<EXTERNAL_DOMAIN>`
    - MinIO Console: `https://minio-console.<EXTERNAL_DOMAIN>`
 
+5. **Add users**:
+   - Log in to Keycloak admin console
+   - Navigate to the `hdc` realm → Users
+   - Click "Add user" and set username, email, first name and last name (it's important to set all these fields to avoid possible issues)
+   - Click "Create", then go to the "Credentials" tab
+   - Click "Set Password", enter a new password
+   - Click "Save" to set the password
+
 ## Security Considerations
 
 ### Demo Mode Configuration
