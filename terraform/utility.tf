@@ -7,22 +7,22 @@ resource "kubernetes_namespace" "utility" {
 # Generate random passwords for service-specific database users
 resource "random_password" "metadata_db_password" {
   length  = 32
-  special = true
+  special = false
 }
 
 resource "random_password" "project_db_password" {
   length  = 32
-  special = true
+  special = false
 }
 
 resource "random_password" "dataops_db_password" {
   length  = 32
-  special = true
+  special = false
 }
 
 resource "random_password" "auth_db_password" {
   length  = 32
-  special = true
+  special = false
 }
 
 resource "kubernetes_secret" "docker_registry" {
@@ -84,12 +84,14 @@ resource "kubernetes_secret" "rsa_public_key" {
   type = "Opaque"
 
   data = {
-    "rsa-public-key" = var.rsa_public_key
+    "rsa-public-key" = base64encode("-----BEGIN PUBLIC KEY-----\n${data.keycloak_realm_keys.hdc.keys[0].public_key}\n-----END PUBLIC KEY-----")
   }
 
   lifecycle {
     ignore_changes = [data]
   }
+
+  depends_on = [data.keycloak_realm_keys.hdc]
 }
 
 # Read the existing postgres secret
@@ -107,6 +109,7 @@ data "kubernetes_secret" "minio_credential" {
     name      = "minio"
     namespace = "minio"
   }
+  depends_on = [helm_release.minio]
 }
 
 resource "kubernetes_secret" "opsdb_utility_credential" {
@@ -455,7 +458,7 @@ resource "helm_release" "auth" {
   timeout    = "300"
 
   values = [templatefile("../helm_charts/pilot-hdc/auth/values.yaml", {
-    EXTERNAL_IP = var.external_ip
+    EXTERNAL_DOMAIN = var.external_domain
   })]
 
   set {
@@ -492,7 +495,7 @@ resource "helm_release" "bff" {
   cleanup_on_fail  = true
 
   values = [templatefile("../helm_charts/pilot-hdc/bff/values.yaml", {
-    EXTERNAL_IP = var.external_ip
+    EXTERNAL_DOMAIN = var.external_domain
   })]
 
   set {
@@ -530,7 +533,7 @@ resource "helm_release" "portal" {
   cleanup_on_fail  = true
 
   values = [templatefile("../helm_charts/pilot-hdc/portal/values.yaml", {
-    EXTERNAL_IP = var.external_ip
+    EXTERNAL_DOMAIN = var.external_domain
   })]
 
   set {
@@ -598,7 +601,7 @@ resource "helm_release" "kong" {
   wait       = "false"  # Bitnami chart wait issue: https://github.com/hashicorp/terraform-provider-helm/issues/683
 
   values = [templatefile("../helm_charts/kong/values.yaml", {
-    EXTERNAL_IP             = var.external_ip
+    EXTERNAL_DOMAIN             = var.external_domain
     KONG_IMAGE_TAG          = var.kong_image_tag
     KONG_POSTGRES_IMAGE_TAG = var.kong_postgres_image_tag
   })]

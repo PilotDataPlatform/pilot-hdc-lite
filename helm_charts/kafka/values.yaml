@@ -1,3 +1,8 @@
+image:
+  registry: docker.io
+  repository: bitnamilegacy/kafka
+  tag: 3.3.1-debian-11-r25
+
 ## Kafka's Java Heap size.
 heapOpts: -Xms256M -Xmx256M
 
@@ -18,6 +23,11 @@ persistence:
     size: 2Gi
 
 zookeeper:
+  image:
+    registry: docker.io
+    repository: bitnamilegacy/zookeeper
+    tag: 3.8.0-debian-11-r65
+
   replicaCount: 1
 
   heapSize: 256

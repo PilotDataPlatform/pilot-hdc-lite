@@ -6,5 +6,5 @@ global:
 
 image:
   registry: docker.io
-  repository: bitnami/postgresql
+  repository: bitnamilegacy/postgresql
   tag: 15.2.0-debian-11-r5

@@ -4,8 +4,8 @@ variable "nodeport" {
   default     = 32443
 }
 
-variable "external_ip" {
-  description = "External IP address for ingress hostnames"
+variable "external_domain" {
+  description = "External domain for ingress hostnames"
   type        = string
 }
 
@@ -61,7 +61,7 @@ variable "dataops_chart_version" {
 
 variable "dataops_app_version" {
   type    = string
-  default = "2.5.9"
+  default = "2.5.11"
 }
 
 variable "docker_registry_username" {
@@ -124,13 +124,6 @@ variable "deploy_vault" {
   default     = false
 }
 
-variable "rsa_public_key" {
-  type        = string
-  description = "RSA public key for metadata service authentication"
-  default     = ""
-  sensitive   = true
-}
-
 variable "auth_chart_version" {
   type    = string
   default = "0.7.2"
@@ -138,7 +131,7 @@ variable "auth_chart_version" {
 
 variable "auth_app_version" {
   type    = string
-  default = "2.2.32"
+  default = "2.2.39"
 }
 
 variable "bff_chart_version" {
@@ -158,7 +151,7 @@ variable "portal_chart_version" {
 
 variable "portal_app_version" {
   type    = string
-  default = "1.6.11-hdc-lite"
+  default = "1.7.9-hdc-lite"
 }
 
 variable "upload_chart_version" {

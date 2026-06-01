@@ -31,8 +31,7 @@ A lightweight, single-VM lite version of the [Pilot-HDC](https://hdc.humanbrainp
 
 2. **Create `.env` file**:
    ```bash
-   EXTERNAL_IP=demo.hdclite.ebrains.eu  # Public domain with wildcard DNS (*.domain → VM IP)
-   RSA_PUBLIC_KEY="<your-public-key>"
+   EXTERNAL_DOMAIN=demo.hdclite.ebrains.eu  # Public domain with wildcard DNS (*.domain → VM IP)
    DEMO=true  # Skips Terraform provider TLS verification during bootstrap
               # Required while Let's Encrypt certs are being issued
               # Safe: Only affects Terraform ↔ Keycloak API calls, not user traffic
@@ -47,10 +46,10 @@ A lightweight, single-VM lite version of the [Pilot-HDC](https://hdc.humanbrainp
    ```
 
    **⚠️ Security Requirements**:
-   - **Keycloak Admin Console** (`https://keycloak.<EXTERNAL_IP>`):
+   - **Keycloak Admin Console** (`https://keycloak.<EXTERNAL_DOMAIN>`):
      - Username: `KEYCLOAK_ADMIN_USERNAME` (do NOT use 'admin' or 'user')
      - Password: `KEYCLOAK_ADMIN_PASSWORD` (required - deployment fails if not set)
-   - **Portal Login** (`https://<EXTERNAL_IP>`):
+   - **Portal Login** (`https://<EXTERNAL_DOMAIN>`):
      - Username: `KEYCLOAK_ADMIN_TEST_USERNAME` (default: 'testadmin')
      - Password: `KEYCLOAK_ADMIN_TEST_PASSWORD` (required - deployment fails if not set)
 
@@ -60,12 +59,22 @@ A lightweight, single-VM lite version of the [Pilot-HDC](https://hdc.humanbrainp
    ```bash
    ./bootstrap.sh
    ```
+   
+   If Terraform is unable to provision Kong-related resources in a single run, simply re-run the script.
 
 4. **Access**:
-   - Portal: `https://<EXTERNAL_IP>`
-   - Keycloak: `https://keycloak.<EXTERNAL_IP>`
-   - API Gateway: `https://api.<EXTERNAL_IP>`
-   - MinIO Console: `https://minio-console.<EXTERNAL_IP>`
+   - Portal: `https://<EXTERNAL_DOMAIN>`
+   - Keycloak: `https://keycloak.<EXTERNAL_DOMAIN>`
+   - API Gateway: `https://api.<EXTERNAL_DOMAIN>`
+   - MinIO Console: `https://minio-console.<EXTERNAL_DOMAIN>`
+
+5. **Add users**:
+   - Log in to Keycloak admin console
+   - Navigate to the `hdc` realm → Users
+   - Click "Add user" and set username, email, first name and last name (it's important to set all these fields to avoid possible issues)
+   - Click "Create", then go to the "Credentials" tab
+   - Click "Set Password", enter a new password
+   - Click "Save" to set the password
 
 ## Security Considerations
 

@@ -14,7 +14,7 @@ replicaCount: 1
 
 ingress:
   enabled: true
-  hostname: "api.${EXTERNAL_IP}"
+  hostname: "api.${EXTERNAL_DOMAIN}"
   path: /
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod

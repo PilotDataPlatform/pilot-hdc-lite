@@ -166,7 +166,7 @@ resource "helm_release" "upload_greenroom" {
   cleanup_on_fail = true
 
   values = [templatefile("../helm_charts/pilot-hdc/upload/values.yaml", {
-    EXTERNAL_IP = var.external_ip
+    EXTERNAL_DOMAIN = var.external_domain
   })]
 
   set {
@@ -202,7 +202,7 @@ resource "helm_release" "download_greenroom" {
   cleanup_on_fail = true
 
   values = [templatefile("../helm_charts/pilot-hdc/download/values.yaml", {
-    EXTERNAL_IP = var.external_ip
+    EXTERNAL_DOMAIN = var.external_domain
   })]
 
   set {
@@ -287,7 +287,7 @@ resource "helm_release" "queue_consumer" {
   cleanup_on_fail = true
 
   values = [templatefile("../helm_charts/pilot-hdc/queue-consumer/values.yaml", {
-    EXTERNAL_IP = var.external_ip
+    EXTERNAL_DOMAIN = var.external_domain
   })]
 
   set {
@@ -329,7 +329,7 @@ resource "helm_release" "queue_producer" {
   cleanup_on_fail = true
 
   values = [templatefile("../helm_charts/pilot-hdc/queue-producer/values.yaml", {
-    EXTERNAL_IP = var.external_ip
+    EXTERNAL_DOMAIN = var.external_domain
   })]
 
   set {

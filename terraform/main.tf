@@ -50,7 +50,7 @@ provider "keycloak" {
   client_id                = "admin-cli"
   username                 = var.keycloak_admin_username
   password                 = var.keycloak_admin_password
-  url                      = var.keycloak_url != "" ? var.keycloak_url : "https://keycloak.${var.external_ip}"
+  url                      = var.keycloak_url != "" ? var.keycloak_url : "https://keycloak.${var.external_domain}"
   tls_insecure_skip_verify = var.demo_mode  # Only skip TLS verification in demo mode
 }
 
@@ -66,6 +66,6 @@ provider "kong" {
 data "kubernetes_nodes" "cluster_nodes" {}
 
 locals {
-  # Use external IP for ingress hostnames
-  node_ip = var.external_ip
+  # Use external domain for ingress hostnames
+  node_ip = var.external_domain
 }

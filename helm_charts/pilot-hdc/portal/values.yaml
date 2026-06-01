@@ -19,11 +19,9 @@ replicaCount: 1
 # Minimal resources for 16GB RAM constraint
 resources:
   requests:
-    cpu: "150m"
-    memory: 150Mi
+    memory: "250Mi"
   limits:
-    cpu: "300m"
-    memory: 300Mi
+    memory: "500Mi"
 
 appConfig:
   env: "staging"
@@ -39,8 +37,8 @@ appConfig:
   REACT_APP_ORGANIZATION_PORTAL_DOMAIN: "pilot-hdc-lite.local"
 
   # Domain and auth - will be injected via templatefile
-  REACT_APP_DOMAIN: "${EXTERNAL_IP}"
-  REACT_APP_DEFAULT_AUTH_URL: "https://keycloak.${EXTERNAL_IP}"
+  REACT_APP_DOMAIN: "${EXTERNAL_DOMAIN}"
+  REACT_APP_DEFAULT_AUTH_URL: "https://keycloak.${EXTERNAL_DOMAIN}"
   REACT_APP_KEYCLOAK_REALM: "hdc"
 
   # Use chart's built-in domain-based URL construction (includes /pilot/portal prefix)
@@ -90,7 +88,7 @@ ingress:
     cert-manager.io/cluster-issuer: letsencrypt-prod
     kubernetes.io/ingress.class: traefik
   tls: true
-  hostname: "${EXTERNAL_IP}"
+  hostname: "${EXTERNAL_DOMAIN}"
   path: /
   pathType: Prefix
 
