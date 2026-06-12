@@ -53,6 +53,8 @@ kong:
     value: "/dev/stdout"
   - name: KONG_ADMIN_ERROR_LOG
     value: "/dev/stderr"
+  - name: KONG_LUA_SSL_VERIFY_DEPTH
+    value: "5"
 
 service:
   exposeAdmin: true  # Exposes admin API as ClusterIP service (in-cluster access only)
